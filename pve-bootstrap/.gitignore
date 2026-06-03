@@ -1,0 +1,20 @@
+collections/
+.credentials/
+roles/*/meta/.galaxy_install_info
+*.retry
+/tmp/
+*.pyc
+__pycache__/
+*.log
+/tmp/ansible_facts_cache/
+
+# SOPS age private keys, never commit
+keys.txt
+age.key
+*.age.key
+
+# Plaintext secrets, never commit (use secrets.sops.yml)
+inventory/group_vars/proxmox_nodes/secrets.yml
+
+# Local ansible virtualenv
+.venv/

@@ -1,0 +1,7 @@
+secrets.pkrvars.hcl
+*.key
+*.pem
+*.p12
+packer_cache/
+downloaded_iso_path/
+packer.log

@@ -1,0 +1,32 @@
+# Secrets
+.decrypted~*
+**/.decrypted~*
+**/group_vars/**/secrets.yml
+**/secrets.pkrvars.hcl
+**/*.tfvars
+!**/*.tfvars.example
+keys.txt
+age.key
+*.age.key
+ssh-ca/**/ca
+*-cert.pub
+
+# Terraform state and plans
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+
+# Fetched kubeconfig
+k3s-cluster/k3s.yaml
+
+# Tooling
+.venv/
+__pycache__/
+*.pyc
+
+# Packer artifacts
+**/packer_cache/
+**/downloaded_iso_path/
+*.log

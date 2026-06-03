@@ -1,0 +1,6 @@
+.terraform/
+*.tfstate
+*.tfstate.*
+*.auto.tfvars
+k3s.yaml
+crash.log
