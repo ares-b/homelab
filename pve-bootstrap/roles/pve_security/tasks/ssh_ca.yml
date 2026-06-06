@@ -1,0 +1,55 @@
+---
+# Trust the homelab INFRA SSH user CA so humans reach the host with short-lived
+# certificates instead of standing keys. The 'ansible' automation account keeps
+# its own key (machine identity) and is unaffected. Standing human keys stay as
+# break-glass; the CA is the normal path.
+- name: PVE Security | SSH CA | Require the CA public key
+  ansible.builtin.assert:
+    that:
+      - pve_security_ssh_ca_public_key is match('^ssh-(ed25519|rsa) ')
+    fail_msg: >-
+      pve_security_ssh_ca_public_key is unset. Run via 'make pve-bootstrap'
+      so it is injected from ssh-ca/infra/ca.pub.
+
+- name: PVE Security | SSH CA | Ensure principals dir
+  ansible.builtin.file:
+    path: /etc/ssh/auth_principals
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: PVE Security | SSH CA | Install CA trust anchor
+  ansible.builtin.copy:
+    dest: /etc/ssh/ca.pub
+    content: "{{ pve_security_ssh_ca_public_key }}\n"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload sshd
+
+- name: PVE Security | SSH CA | Map principals per login user
+  ansible.builtin.copy:
+    dest: "/etc/ssh/auth_principals/{{ item.key }}"
+    content: "{{ item.value | join('\n') }}\n"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ pve_security_ssh_ca_logins | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+
+# 00- prefix so this sorts before any 50-cloud-init drop-in: sshd takes the
+# FIRST value per keyword. PasswordAuthentication is left untouched here to avoid
+# locking the hypervisor out during recovery; tighten separately once verified.
+- name: PVE Security | SSH CA | sshd drop-in
+  ansible.builtin.copy:
+    dest: /etc/ssh/sshd_config.d/00-ca.conf
+    content: |
+      TrustedUserCAKeys /etc/ssh/ca.pub
+      AuthorizedPrincipalsFile /etc/ssh/auth_principals/%u
+    owner: root
+    group: root
+    mode: "0644"
+    validate: sshd -t -f %s
+  notify: Reload sshd

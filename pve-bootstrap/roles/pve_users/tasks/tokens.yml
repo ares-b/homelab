@@ -1,0 +1,72 @@
+---
+- name: "PVE Tokens | Check if token {{ token.userid }}!{{ token.token_name }} exists"
+  ansible.builtin.command:
+    cmd: >-
+      pveum user token list {{ token.userid }} --output-format json
+  register: _token_list
+  changed_when: false
+  failed_when: false
+
+- name: "PVE Tokens | Parse existing token names for {{ token.userid }}"
+  ansible.builtin.set_fact:
+    _existing_token_names: >-
+      {{
+        (
+          _token_list.stdout | from_json
+          | map(attribute='tokenid')
+          | map('regex_replace', '^.*!', '')
+          | list
+        )
+        if _token_list.rc == 0 and _token_list.stdout != '[]' else []
+      }}
+
+- name: "PVE Tokens | Create token {{ token.userid }}!{{ token.token_name }}"
+  ansible.builtin.command:
+    cmd: >-
+      pveum user token add {{ token.userid }} {{ token.token_name }}
+      --privsep {{ 1 if token.privsep | default(false) else 0 }}
+      --comment "{{ token.comment | default('') }}"
+      --output-format json
+  register: _token_create
+  when:
+    - state == 'present'
+    - token.token_name not in _existing_token_names
+
+- name: "PVE Tokens | Ensure local credentials directory exists"
+  ansible.builtin.file:
+    path: "{{ playbook_dir }}/.credentials"
+    state: directory
+    mode: "0700"
+  delegate_to: localhost
+  become: false
+  when:
+    - _token_create is defined
+    - _token_create is changed
+
+- name: "PVE Tokens | Save token secret to local credentials file"
+  ansible.builtin.lineinfile:
+    path: "{{ playbook_dir }}/.credentials/tokens.txt"
+    line: "{{ token.userid }}!{{ token.token_name }}={{ (_token_create.stdout | from_json).value }}"
+    create: true
+    mode: "0600"
+  delegate_to: localhost
+  become: false
+  when:
+    - _token_create is defined
+    - _token_create is changed
+
+- name: "PVE Tokens | Display token secret for {{ token.userid }}!{{ token.token_name }}"
+  ansible.builtin.debug:
+    msg: >-
+      TOKEN SECRET saved to {{ playbook_dir }}/.credentials/tokens.txt
+      {{ token.userid }}!{{ token.token_name }} = {{ (_token_create.stdout | from_json).value }}
+  when:
+    - _token_create is defined
+    - _token_create is changed
+
+- name: "PVE Tokens | Remove token {{ token.userid }}!{{ token.token_name }}"
+  ansible.builtin.command:
+    cmd: "pveum user token remove {{ token.userid }} {{ token.token_name }}"
+  when:
+    - state == 'absent'
+    - token.token_name in _existing_token_names

@@ -1,0 +1,27 @@
+myhostname = {{ ansible_fqdn }}
+smtpd_banner = $myhostname ESMTP $mail_name (Debian/GNU)
+biff = no
+append_dot_mydomain = no
+
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+mydestination = $myhostname, localhost.$mydomain, localhost
+mynetworks = 127.0.0.0/8
+inet_interfaces = loopback-only
+recipient_delimiter = +
+compatibility_level = 3.6
+
+sender_canonical_maps = static:{{ pve_notifications_mail_from }}
+
+{% if pve_notifications_smtp_host != '' %}
+relayhost = [{{ pve_notifications_smtp_host }}]:{{ pve_notifications_smtp_port }}
+smtp_sasl_auth_enable = yes
+smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+smtp_sasl_security_options = noanonymous
+smtp_tls_security_level = encrypt
+smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
+smtp_use_tls = yes
+{% else %}
+# No relay configured - sending directly (may fail due to SPF/DKIM)
+relayhost =
+{% endif %}

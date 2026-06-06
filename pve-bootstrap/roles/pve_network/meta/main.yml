@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  role_name: pve_network
+  namespace: areslabs
+  author: Arès
+  description: "PVE network tuning: ip_forward, VLAN-aware bridges, MTU"
+  company: AresLabs
+  license: "Proprietary - For internal use only"
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+  galaxy_tags:
+    - proxmox
+    - network
+    - vlan

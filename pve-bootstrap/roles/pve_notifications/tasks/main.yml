@@ -1,0 +1,31 @@
+---
+- name: PVE Notifications | Validate state
+  ansible.builtin.fail:
+    msg: "Invalid state '{{ state }}'. Must be 'present' or 'absent'."
+  when: state not in ['present', 'absent']
+
+- name: PVE Notifications | Warn if no SMTP host and no mail_to configured
+  ansible.builtin.debug:
+    msg: "WARNING: pve_notifications_smtp_host or pve_notifications_mail_to not set - alerts will not be sent"
+  when:
+    - state == 'present'
+    - pve_notifications_smtp_host == '' or pve_notifications_mail_to == ''
+
+- name: PVE Notifications | Configure Postfix relay
+  ansible.builtin.include_tasks: postfix.yml
+  when: state == 'present'
+
+- name: PVE Notifications | Set root@pam email address
+  ansible.builtin.command:
+    cmd: "pveum user modify root@pam --email {{ pve_notifications_mail_to }}"
+  when:
+    - state == 'present'
+    - pve_notifications_mail_to != ''
+  changed_when: false
+
+- name: PVE Notifications | Configure PVE SMTP notification endpoint
+  ansible.builtin.include_tasks: pve_smtp_endpoint.yml
+  when:
+    - state == 'present'
+    - pve_notifications_smtp_host != ''
+    - pve_notifications_mail_to != ''

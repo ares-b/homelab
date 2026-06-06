@@ -1,0 +1,57 @@
+---
+- name: "PVE Backup | {{ job.id }} - create job"
+  ansible.builtin.command:
+    cmd: >-
+      pvesh create /cluster/backup
+      --id {{ job.id }}
+      --enabled {{ 1 if job.enabled | default(true) else 0 }}
+      --storage {{ job.storage }}
+      --schedule "{{ job.schedule }}"
+      --mode {{ job.mode | default('snapshot') }}
+      --compress {{ job.compress | default('zstd') }}
+      --prune-backups keep-last={{ job.max_backups | default(7) }}
+      --mailnotification {{ job.mail_notification | default('failure') }}
+      {% if job.mail_to is defined and job.mail_to != '' %}--mailto {{ job.mail_to }}{% endif %}
+      {% if job.all_vms | default(false) %}--all 1{% endif %}
+      {% if not (job.all_vms | default(false)) and job.vmids | default([]) | length > 0 %}
+      --vmid {{ job.vmids | join(',') }}
+      {% endif %}
+      {% if job.notes_template is defined %}--notes-template "{{ job.notes_template }}"{% endif %}
+  when:
+    - job.state | default('present') == 'present'
+    - job.id not in existing_backup_ids
+
+# pvesh has no idempotent upsert, so only push an update when a managed field
+# actually differs. prune-backups and vmid changes are not diffed here; change
+# those by recreating the job.
+- name: "PVE Backup | {{ job.id }} - update existing job"
+  vars:
+    _cur: "{{ existing_backup_jobs | selectattr('id', '==', job.id) | first | default({}) }}"
+  ansible.builtin.command:
+    cmd: >-
+      pvesh set /cluster/backup/{{ job.id }}
+      --enabled {{ 1 if job.enabled | default(true) else 0 }}
+      --storage {{ job.storage }}
+      --schedule "{{ job.schedule }}"
+      --mode {{ job.mode | default('snapshot') }}
+      --compress {{ job.compress | default('zstd') }}
+      --prune-backups keep-last={{ job.max_backups | default(7) }}
+      --mailnotification {{ job.mail_notification | default('failure') }}
+      {% if job.mail_to is defined and job.mail_to != '' %}--mailto {{ job.mail_to }}{% endif %}
+  when:
+    - job.state | default('present') == 'present'
+    - job.id in existing_backup_ids
+    - >-
+      (_cur.enabled | default(1) | int) != (1 if job.enabled | default(true) else 0)
+      or _cur.storage | default('') != job.storage
+      or _cur.schedule | default('') != job.schedule
+      or (_cur.mode | default('snapshot')) != (job.mode | default('snapshot'))
+      or (_cur.compress | default('zstd')) != (job.compress | default('zstd'))
+      or (_cur.mailnotification | default('failure')) != (job.mail_notification | default('failure'))
+
+- name: "PVE Backup | {{ job.id }} - remove job"
+  ansible.builtin.command:
+    cmd: "pvesh delete /cluster/backup/{{ job.id }}"
+  when:
+    - job.state | default('present') == 'absent'
+    - job.id in existing_backup_ids

@@ -1,0 +1,17 @@
+---
+- name: PVE Pools | Get current PVE storage list
+  ansible.builtin.command:
+    cmd: pvesh get /storage --output-format json
+  register: pvesm_list
+  changed_when: false
+
+- name: PVE Pools | Parse current storage names
+  ansible.builtin.set_fact:
+    pvesm_existing: "{{ pvesm_list.stdout | from_json | map(attribute='storage') | list }}"
+
+- name: PVE Pools | Process each pool
+  ansible.builtin.include_tasks: pve_pool_single.yml
+  loop: "{{ pve_storage_pools }}"
+  loop_control:
+    loop_var: pool
+    label: "{{ pool.name }} ({{ pool.type }})"

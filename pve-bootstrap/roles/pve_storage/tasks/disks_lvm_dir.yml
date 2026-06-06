@@ -1,0 +1,121 @@
+---
+- name: "PVE Storage LVM-Dir | {{ pool.name }} - check device exists"
+  ansible.builtin.stat:
+    path: "{{ pool.disk.device }}"
+  register: disk_stat
+
+- name: "PVE Storage LVM-Dir | {{ pool.name }} - fail if device not found"
+  ansible.builtin.fail:
+    msg: "Device {{ pool.disk.device }} not found on this host"
+  when: not disk_stat.stat.exists
+
+- name: "PVE Storage LVM-Dir | {{ pool.name }} - inspect current partition table"
+  ansible.builtin.command:
+    cmd: "parted -s {{ pool.disk.device }} print"
+  register: parted_info
+  changed_when: false
+  failed_when: false
+
+- name: "PVE Storage LVM-Dir | {{ pool.name }} - create GPT label"
+  community.general.parted:
+    device: "{{ pool.disk.device }}"
+    label: gpt
+    state: present
+  when:
+    - pool.state == 'present'
+    - >-
+      pool.disk.wipe | default(false)
+      or 'unrecognised disk label' in (parted_info.stderr | default(''))
+
+- name: "PVE Storage LVM-Dir | {{ pool.name }} - create full-disk partition with LVM flag"
+  community.general.parted:
+    device: "{{ pool.disk.device }}"
+    label: gpt
+    number: 1
+    state: present
+    part_start: "0%"
+    part_end: "100%"
+    flags: [lvm]
+  when: pool.state == 'present'
+
+- name: "PVE Storage LVM-Dir | {{ pool.name }} - resolve partition device path"
+  ansible.builtin.set_fact:
+    _pv_path: >-
+      {%- set dev = pool.disk.device -%}
+      {%- if dev | regex_search('nvme|mmcblk') -%}{{ dev }}p1{%- else -%}{{ dev }}1{%- endif -%}
+
+- name: "PVE Storage LVM-Dir | {{ pool.name }} - check if VG {{ pool.disk.vg_name }} exists"
+  ansible.builtin.command:
+    cmd: "vgs --noheadings -o vg_name {{ pool.disk.vg_name }}"
+  register: _vg_check
+  changed_when: false
+  failed_when: false
+
+- name: "PVE Storage LVM-Dir | {{ pool.name }} - initialize PV on {{ _pv_path }}"
+  ansible.builtin.command:
+    cmd: "pvcreate {{ _pv_path }}"
+  when:
+    - pool.state == 'present'
+    - _vg_check.rc != 0
+
+- name: "PVE Storage LVM-Dir | {{ pool.name }} - create VG {{ pool.disk.vg_name }}"
+  ansible.builtin.command:
+    cmd: "vgcreate {{ pool.disk.vg_name }} {{ _pv_path }}"
+  when:
+    - pool.state == 'present'
+    - _vg_check.rc != 0
+
+- name: "PVE Storage LVM-Dir | {{ pool.name }} - check if LV {{ pool.lvm_dir.lv_name }} exists"
+  ansible.builtin.command:
+    cmd: "lvs --noheadings -o lv_name {{ pool.disk.vg_name }}/{{ pool.lvm_dir.lv_name }}"
+  register: _lv_check
+  changed_when: false
+  failed_when: false
+
+- name: "PVE Storage LVM-Dir | {{ pool.name }} - create LV {{ pool.lvm_dir.lv_name }} ({{ pool.lvm_dir.lv_size }})"
+  ansible.builtin.command:
+    cmd: "lvcreate -L {{ pool.lvm_dir.lv_size }} -n {{ pool.lvm_dir.lv_name }} {{ pool.disk.vg_name }}"
+  when:
+    - pool.state == 'present'
+    - _lv_check.rc != 0
+
+- name: "PVE Storage LVM-Dir | {{ pool.name }} - resolve LV device path"
+  ansible.builtin.set_fact:
+    _lv_path: "/dev/{{ pool.disk.vg_name }}/{{ pool.lvm_dir.lv_name }}"
+
+- name: "PVE Storage LVM-Dir | {{ pool.name }} - create {{ pool.lvm_dir.filesystem | default('ext4') }} filesystem"
+  community.general.filesystem:
+    fstype: "{{ pool.lvm_dir.filesystem | default('ext4') }}"
+    dev: "{{ _lv_path }}"
+    state: present
+  when: pool.state == 'present'
+
+- name: "PVE Storage LVM-Dir | {{ pool.name }} - unmount filesystem before removal"
+  ansible.posix.mount:
+    path: "{{ pool.lvm_dir.mount_point }}"
+    state: unmounted
+  when: pool.state == 'absent'
+
+- name: "PVE Storage LVM-Dir | {{ pool.name }} - ensure mount point exists"
+  ansible.builtin.file:
+    path: "{{ pool.lvm_dir.mount_point }}"
+    state: "{{ 'directory' if pool.state == 'present' else 'absent' }}"
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: "PVE Storage LVM-Dir | {{ pool.name }} - mount filesystem"
+  ansible.posix.mount:
+    path: "{{ pool.lvm_dir.mount_point }}"
+    src: "{{ _lv_path }}"
+    fstype: "{{ pool.lvm_dir.filesystem | default('ext4') }}"
+    opts: "{{ pool.lvm_dir.mount_options | default('defaults,noatime') }}"
+    state: "{{ 'mounted' if pool.state == 'present' else 'absent' }}"
+  when: pool.state == 'present'
+
+- name: "PVE Storage LVM-Dir | {{ pool.name }} - remove LV on absent"
+  ansible.builtin.command:
+    cmd: "lvremove -f {{ pool.disk.vg_name }}/{{ pool.lvm_dir.lv_name }}"
+  when:
+    - pool.state == 'absent'
+    - _lv_check.rc == 0

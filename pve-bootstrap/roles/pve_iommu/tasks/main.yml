@@ -1,0 +1,28 @@
+---
+- name: PVE IOMMU | Validate state
+  ansible.builtin.fail:
+    msg: "Invalid state '{{ state }}'. Must be 'present' or 'absent'."
+  when: state not in ['present', 'absent']
+
+- name: PVE IOMMU | Validate cpu_vendor
+  ansible.builtin.fail:
+    msg: "pve_iommu_cpu_vendor must be 'intel' or 'amd', got '{{ pve_iommu_cpu_vendor }}'"
+  when:
+    - pve_iommu_enabled | bool
+    - pve_iommu_cpu_vendor not in ['intel', 'amd']
+
+- name: PVE IOMMU | Configure GRUB cmdline
+  ansible.builtin.include_tasks: grub.yml
+
+- name: PVE IOMMU | Configure VFIO kernel modules
+  ansible.builtin.include_tasks: modules.yml
+
+- name: PVE IOMMU | Configure driver blacklists
+  ansible.builtin.include_tasks: blacklist.yml
+  when: pve_iommu_blacklist_drivers | length > 0
+
+- name: PVE IOMMU | Reboot to activate IOMMU
+  ansible.builtin.reboot:
+    reboot_timeout: 300
+    post_reboot_delay: 10
+  when: pve_iommu_reboot_needed | default(false)

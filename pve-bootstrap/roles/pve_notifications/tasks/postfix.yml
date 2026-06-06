@@ -1,0 +1,60 @@
+---
+- name: PVE Postfix | Ensure postfix and mailutils are installed
+  ansible.builtin.apt:
+    name:
+      - postfix
+      - mailutils
+      - libsasl2-modules
+      - ca-certificates
+    state: present
+
+- name: PVE Postfix | Deploy main.cf
+  ansible.builtin.template:
+    src: main.cf.j2
+    dest: /etc/postfix/main.cf
+    owner: root
+    group: root
+    mode: "0644"
+    backup: true
+  notify: Restart postfix
+
+- name: PVE Postfix | Configure SASL credentials
+  ansible.builtin.template:
+    src: sasl_passwd.j2
+    dest: /etc/postfix/sasl_passwd
+    owner: root
+    group: root
+    mode: "0600"
+  when:
+    - pve_notifications_smtp_host != ''
+    - pve_notifications_smtp_user != ''
+  no_log: true
+  register: _sasl_passwd
+  notify: Restart postfix
+
+- name: PVE Postfix | Build SASL password hash
+  ansible.builtin.command:
+    cmd: postmap /etc/postfix/sasl_passwd
+  when:
+    - pve_notifications_smtp_host != ''
+    - pve_notifications_smtp_user != ''
+    - _sasl_passwd is changed
+  notify: Restart postfix
+
+- name: PVE Postfix | Ensure postfix is running and enabled
+  ansible.builtin.service:
+    name: postfix
+    state: started
+    enabled: true
+
+- name: PVE Postfix | Send test email
+  ansible.builtin.shell:
+    cmd: >-
+      echo "Proxmox node {{ inventory_hostname }} notifications configured at $(date)" |
+      mail -s "[PVE] Notification test from {{ inventory_hostname }}" {{ pve_notifications_mail_to }}
+  when:
+    - pve_notifications_mail_to != ''
+    - pve_notifications_smtp_host != ''
+    - _sasl_passwd is changed
+  changed_when: false
+  failed_when: false

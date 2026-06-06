@@ -1,0 +1,24 @@
+---
+- name: PVE Metrics | Check if metrics server already configured
+  ansible.builtin.command:
+    cmd: >-
+      pvesh get /cluster/metrics/server/{{ pve_monitoring_metrics_server.name }}
+      --output-format json
+  register: metrics_check
+  changed_when: false
+  failed_when: false
+
+- name: PVE Metrics | Add metrics server
+  ansible.builtin.command:
+    cmd: >-
+      pvesh create /cluster/metrics/server/{{ pve_monitoring_metrics_server.name }}
+      --type {{ pve_monitoring_metrics_server.type }}
+      --server {{ pve_monitoring_metrics_server.host }}
+      --port {{ pve_monitoring_metrics_server.port }}
+      {% if pve_monitoring_metrics_server.type == 'influxdb' and pve_monitoring_metrics_server.influxdbproto is defined %}
+      --influxdbproto {{ pve_monitoring_metrics_server.influxdbproto }}
+      {% endif %}
+  when:
+    - metrics_check.rc != 0
+    - pve_monitoring_metrics_server.name is defined
+    - pve_monitoring_metrics_server.host is defined

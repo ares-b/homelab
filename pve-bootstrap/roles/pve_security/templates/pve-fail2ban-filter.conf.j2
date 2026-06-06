@@ -1,0 +1,12 @@
+# Matches pveproxy auth failures: 401/403 responses in /var/log/pveproxy/access.log
+
+[INCLUDES]
+before = common.conf
+
+[Definition]
+failregex = ^\S+ \S+ <HOST> ".*" (401|403) \d+$
+
+ignoreregex =
+
+[Init]
+datepattern = ^%%Y-%%m-%%dT%%H:%%M:%%S

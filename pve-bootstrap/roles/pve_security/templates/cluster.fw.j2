@@ -1,0 +1,25 @@
+[OPTIONS]
+enable: {{ 1 if pve_security_firewall_enabled else 0 }}
+policy_in: {{ pve_security_firewall_policy_in }}
+policy_out: {{ pve_security_firewall_policy_out }}
+log_ratelimit: {{ pve_security_firewall_log_ratelimit }}
+
+[RULES]
+{% for network in pve_security_trusted_networks %}
+IN ACCEPT -source {{ network }} -proto icmp -log nolog -comment "ICMP from {{ network }}"
+{% endfor %}
+
+{% for network in pve_security_trusted_networks %}
+{% for rule in pve_security_open_ports %}
+IN ACCEPT -source {{ network }} -dport {{ rule.port }} -proto {{ rule.proto }} -log nolog -comment "{{ rule.comment }}"
+{% endfor %}
+{% endfor %}
+
+# Corosync cluster communication
+# IN ACCEPT -source <cluster_network> -dport 5404 -proto udp -log nolog -comment "Corosync mcast"
+# IN ACCEPT -source <cluster_network> -dport 5405 -proto udp -log nolog -comment "Corosync mcast alt"
+
+# Migration traffic
+# IN ACCEPT -source <cluster_network> -dport 60000:60050 -proto tcp -log nolog -comment "Live migration"
+
+IN DROP -log warning -comment "Default DROP"

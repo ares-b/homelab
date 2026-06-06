@@ -1,0 +1,65 @@
+---
+- name: "PVE Pool | {{ pool.name }} - add dir storage"
+  ansible.builtin.command:
+    cmd: >-
+      pvesm add dir {{ pool.name }}
+      --path {{ pool.dir.mount_point }}
+      --content {{ pool.content | join(',') }}
+  when:
+    - pool.state == 'present'
+    - pool.type == 'dir'
+    - pool.name not in pvesm_existing
+
+- name: "PVE Pool | {{ pool.name }} - add lvm-dir storage (LV-backed dir, registered as dir)"
+  ansible.builtin.command:
+    cmd: >-
+      pvesm add dir {{ pool.name }}
+      --path {{ pool.lvm_dir.mount_point }}
+      --content {{ pool.content | join(',') }}
+  when:
+    - pool.state == 'present'
+    - pool.type == 'lvm-dir'
+    - pool.name not in pvesm_existing
+
+- name: "PVE Pool | {{ pool.name }} - reconcile content on existing dir/lvm-dir storage"
+  ansible.builtin.command:
+    cmd: >-
+      pvesm set {{ pool.name }}
+      --content {{ pool.content | join(',') }}
+  changed_when: false
+  when:
+    - pool.state == 'present'
+    - pool.type in ['dir', 'lvm-dir']
+    - pool.name in pvesm_existing
+
+- name: "PVE Pool | {{ pool.name }} - add lvmthin storage"
+  ansible.builtin.command:
+    cmd: >-
+      pvesm add lvmthin {{ pool.name }}
+      --vgname {{ pool.lvmthin.vg_name }}
+      --thinpool {{ pool.lvmthin.lv_name }}
+      --content {{ pool.content | join(',') }}
+  when:
+    - pool.state == 'present'
+    - pool.type == 'lvmthin'
+    - pool.name not in pvesm_existing
+
+- name: "PVE Pool | {{ pool.name }} - add NFS storage"
+  ansible.builtin.command:
+    cmd: >-
+      pvesm add nfs {{ pool.name }}
+      --server {{ pool.nfs.server }}
+      --export {{ pool.nfs.export }}
+      --options {{ pool.nfs.options | default('vers=4,hard') }}
+      --content {{ pool.content | join(',') }}
+  when:
+    - pool.state == 'present'
+    - pool.type == 'nfs'
+    - pool.name not in pvesm_existing
+
+- name: "PVE Pool | {{ pool.name }} - remove storage"
+  ansible.builtin.command:
+    cmd: "pvesm remove {{ pool.name }}"
+  when:
+    - pool.state == 'absent'
+    - pool.name in pvesm_existing

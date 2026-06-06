@@ -1,0 +1,20 @@
+---
+state: present
+
+pve_iommu_enabled: true
+pve_iommu_cpu_vendor: intel    # intel or amd
+
+# VFIO kernel modules to load
+pve_iommu_vfio_modules:
+  - vfio
+  - vfio_iommu_type1
+  - vfio_pci
+
+# Host driver blacklists for devices you intend to pass through.
+# Add entries when you know which GPU/NIC you'll be passing.
+# Example:
+# pve_iommu_blacklist_drivers:
+#   - nouveau
+#   - nvidia
+#   - snd_hda_intel
+pve_iommu_blacklist_drivers: []

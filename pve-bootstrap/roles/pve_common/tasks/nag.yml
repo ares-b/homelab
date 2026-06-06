@@ -1,0 +1,26 @@
+---
+- name: PVE Nag | Check if subscription nag is still present
+  ansible.builtin.shell:
+    cmd: grep -c 'getNoSubKeyHtml' /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js || true
+  register: nag_check
+  changed_when: false
+  failed_when: false
+
+- name: PVE Nag | Backup proxmoxlib.js before patching
+  ansible.builtin.copy:
+    src: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+    dest: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js.ansible-bak
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0644"
+    force: false
+  when: nag_check.stdout | int > 0
+
+- name: PVE Nag | Patch out subscription check popup
+  ansible.builtin.replace:
+    path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+    regexp: 'getNoSubKeyHtml'
+    replace: 'notAFunction_patched'
+  when: nag_check.stdout | int > 0
+  notify: Restart pveproxy

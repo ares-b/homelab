@@ -1,0 +1,99 @@
+---
+- name: Bootstrap secrets
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    secrets_file: "{{ playbook_dir }}/inventory/group_vars/proxmox_nodes/secrets.sops.yml"
+    _tmp_key: /tmp/ansible_pve_init
+
+  tasks:
+    - name: Check for an existing secrets file
+      ansible.builtin.stat:
+        path: "{{ secrets_file }}"
+      register: _secrets_stat
+
+    - name: Load existing secrets (SOPS-decrypted)
+      ansible.builtin.set_fact:
+        _existing: "{{ lookup('community.sops.sops', secrets_file) | from_yaml }}"
+      when: _secrets_stat.stat.exists
+
+    - name: Default to empty when no secrets file yet
+      ansible.builtin.set_fact:
+        _existing: {}
+      when: not _secrets_stat.stat.exists
+
+    # Only generate what is missing. A complete file => no-op (nothing written,
+    # no re-encryption), so re-running init is safe and idempotent.
+    - name: Decide what is missing
+      ansible.builtin.set_fact:
+        _need_key: "{{ not (_existing.pve_ansible_ssh_pub_key | default('')) or not (_existing.pve_ansible_ssh_private_key_b64 | default('')) }}"
+        _need_tf_pw: "{{ not (_existing.pve_secret_password_terraform | default('')) }}"
+
+    - name: Generate ansible_pve SSH keypair
+      ansible.builtin.command:
+        cmd: "ssh-keygen -t ed25519 -f {{ _tmp_key }} -C ansible@pve01 -N ''"
+        creates: "{{ _tmp_key }}"
+      when: _need_key | bool
+
+    - name: Read generated keypair (pub then private)
+      ansible.builtin.command:
+        cmd: "cat {{ item }}"
+      register: _kp
+      changed_when: false
+      no_log: true
+      loop:
+        - "{{ _tmp_key }}.pub"
+        - "{{ _tmp_key }}"
+      when: _need_key | bool
+
+    - name: Generate terraform password
+      ansible.builtin.command:
+        cmd: "python3 -c 'import secrets; print(secrets.token_urlsafe(24))'"
+      register: _pass_terraform
+      changed_when: false
+      no_log: true
+      when: _need_tf_pw | bool
+
+    - name: Assemble newly generated values
+      ansible.builtin.set_fact:
+        _generated: >-
+          {{
+            (_need_key | bool) | ternary({
+              'pve_ansible_ssh_pub_key': (_kp.results[0].stdout | default('')),
+              'pve_ansible_ssh_private_key_b64': (_kp.results[1].stdout | default('') | b64encode)
+            }, {})
+            | combine((_need_tf_pw | bool) | ternary({
+              'pve_secret_password_terraform': (_pass_terraform.stdout | default(''))
+            }, {}))
+          }}
+
+    - name: Secrets already complete, nothing to do
+      ansible.builtin.debug:
+        msg: "secrets.sops.yml already has the ansible key and terraform password; no changes."
+      when: _generated | length == 0
+
+    # Merge onto existing so user-set values (ares/packer passwords, SMTP) are
+    # preserved, never dropped.
+    - name: Write merged secrets (plaintext; encrypted next)
+      ansible.builtin.copy:
+        dest: "{{ secrets_file }}"
+        mode: "0600"
+        content: "{{ (_existing | combine(_generated)) | to_nice_yaml }}"
+      no_log: true
+      when: _generated | length > 0
+
+    - name: Encrypt secrets file in place with SOPS
+      ansible.builtin.command:
+        cmd: "sops --encrypt --in-place {{ secrets_file }}"
+      changed_when: true
+      when: _generated | length > 0
+
+    - name: Remove temp keypair
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ _tmp_key }}"
+        - "{{ _tmp_key }}.pub"
+      when: _need_key | bool

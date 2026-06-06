@@ -1,0 +1,11 @@
+---
+state: present
+
+pve_storage_pools: []
+
+# LVM tuning applied globally to lvm.conf
+pve_storage_lvm_issue_discards: 1
+pve_storage_lvm_thin_autoextend_threshold: 80
+pve_storage_lvm_thin_autoextend_percent: 20
+
+pve_storage_fstrim_enabled: true

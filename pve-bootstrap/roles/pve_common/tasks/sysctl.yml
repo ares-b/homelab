@@ -1,0 +1,9 @@
+---
+- name: PVE Sysctl | Apply tuning parameters
+  ansible.posix.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    sysctl_file: /etc/sysctl.d/99-pve-tuning.conf
+    state: present
+    reload: true
+  loop: "{{ pve_common_sysctl_settings | dict2items }}"

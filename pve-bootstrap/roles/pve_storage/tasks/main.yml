@@ -1,0 +1,42 @@
+---
+- name: PVE Storage | Validate state
+  ansible.builtin.fail:
+    msg: "Invalid state '{{ state }}'. Must be 'present' or 'absent'."
+  when: state not in ['present', 'absent']
+
+- name: PVE Storage | Install required packages
+  ansible.builtin.apt:
+    name:
+      - parted
+      - lvm2
+      - e2fsprogs
+      - xfsprogs
+      - gdisk
+      - nfs-common
+    state: present
+  when: state == 'present'
+
+- name: PVE Storage | Tune LVM configuration
+  ansible.builtin.include_tasks: lvm_tuning.yml
+  when: state == 'present'
+
+- name: PVE Storage | Enable fstrim timer for SSD health
+  ansible.builtin.systemd:
+    name: fstrim.timer
+    enabled: "{{ pve_storage_fstrim_enabled | bool }}"
+    state: "{{ 'started' if pve_storage_fstrim_enabled else 'stopped' }}"
+  when: state == 'present'
+
+- name: PVE Storage | Process each storage pool
+  ansible.builtin.include_tasks: "{{ 'disks_' + pool.type | replace('-', '_') + '.yml' }}"
+  loop: "{{ pve_storage_pools }}"
+  loop_control:
+    loop_var: pool
+    label: "{{ pool.name }} ({{ pool.type }})"
+  when: pve_storage_pools | length > 0
+
+- name: PVE Storage | Register pools with PVE
+  ansible.builtin.include_tasks: pve_pools.yml
+  when:
+    - state == 'present'
+    - pve_storage_pools | length > 0

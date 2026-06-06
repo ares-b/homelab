@@ -1,0 +1,15 @@
+---
+- name: PVE Monitoring | Validate state
+  ansible.builtin.fail:
+    msg: "Invalid state '{{ state }}'. Must be 'present' or 'absent'."
+  when: state not in ['present', 'absent']
+
+- name: PVE Monitoring | Configure SMART disk health monitoring
+  ansible.builtin.include_tasks: smart.yml
+  when: pve_monitoring_smart_enabled | bool
+
+- name: PVE Monitoring | Configure PVE metrics server
+  ansible.builtin.include_tasks: metrics.yml
+  when:
+    - state == 'present'
+    - pve_monitoring_metrics_server_enabled | bool

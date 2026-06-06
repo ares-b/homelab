@@ -1,0 +1,38 @@
+---
+- name: PVE SSH | Harden sshd_config
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    validate: sshd -t -f %s
+    backup: true
+  loop:
+    - regexp: '^#?PermitRootLogin'
+      line: "PermitRootLogin {{ pve_common_ssh_permit_root_login }}"
+    - regexp: '^#?PasswordAuthentication'
+      line: "PasswordAuthentication {{ pve_common_ssh_password_auth }}"
+    - regexp: '^#?X11Forwarding'
+      line: "X11Forwarding {{ pve_common_ssh_x11_forwarding }}"
+    - regexp: '^#?Port '
+      line: "Port {{ pve_common_ssh_port }}"
+    - regexp: '^#?MaxAuthTries'
+      line: "MaxAuthTries 4"
+    - regexp: '^#?LoginGraceTime'
+      line: "LoginGraceTime 30"
+    - regexp: '^#?ClientAliveInterval'
+      line: "ClientAliveInterval 300"
+    - regexp: '^#?ClientAliveCountMax'
+      line: "ClientAliveCountMax 3"
+    - regexp: '^#?AllowAgentForwarding'
+      line: "AllowAgentForwarding no"
+    - regexp: '^#?TCPKeepAlive'
+      line: "TCPKeepAlive yes"
+  when: state == 'present'
+  notify: Restart SSH
+
+- name: PVE SSH | Ensure sshd is running and enabled
+  ansible.builtin.service:
+    name: sshd
+    state: started
+    enabled: true
+  when: state == 'present'

@@ -1,0 +1,195 @@
+---
+pve_common_linux_users:
+  - name: ares
+    state: present
+    shell: /bin/bash
+    sudo: true
+    sudo_nopasswd: false
+    password_lock: false
+    password: "{{ pve_secret_password_ares | password_hash('sha512', 65534 | random(seed=inventory_hostname) | string) }}"
+    exclusive_keys: false
+    groups:
+      - sudo
+    ssh_authorized_keys:
+      - "{{ lookup('file', '~/.ssh/id_ed25519.pub') }}"
+
+  - name: ansible
+    state: present
+    shell: /bin/bash
+    sudo: true
+    sudo_nopasswd: true
+    password_lock: true
+    exclusive_keys: true
+    groups:
+      - sudo
+    ssh_authorized_keys:
+      - "{{ pve_ansible_ssh_pub_key }}"
+
+pve_common_ntp_servers:
+  - 192.168.0.70
+  - 0.fr.pool.ntp.org
+  - 1.fr.pool.ntp.org
+  - 2.fr.pool.ntp.org
+
+pve_common_timezone: Europe/Paris
+pve_common_suppress_nag: true
+
+pve_security_trusted_networks:
+  - 192.168.0.0/24
+  - 10.0.0.0/24   # routed VM subnet (vmbr10)
+
+pve_security_firewall_enabled: true
+
+# Humans reach the host with short-lived certs from the INFRA SSH CA
+# (ssh-ca/infra). The 'ansible' automation key is unaffected.
+# pve_security_ssh_ca_public_key is injected by the Makefile (-e) from
+# ssh-ca/infra/ca.pub, so the value has one source and no '..' path lives here.
+pve_security_ssh_ca_enabled: true
+pve_security_ssh_ca_logins:
+  ares:
+    - ares
+
+pve_security_fail2ban_enabled: true
+pve_security_fail2ban_maxretry: 5
+pve_security_fail2ban_bantime: 3600
+pve_security_fail2ban_findtime: 600
+
+pve_network_ip_forward: true
+pve_network_ipv6_forward: false
+
+pve_network_bridges:
+  - name: vmbr0
+    vlan_aware: true
+    mtu: 1500
+
+# Routed VM network. Freebox Pop holds the static route 10.0.0.0/24 to
+# REDACTED_PVE_IP. Set to false to fall back to plain bridged 192.x.
+# The Freebox does not NAT the routed subnet, so the host provides internet.
+pve_network_routed_enabled: true
+pve_network_routed_bridge: vmbr10
+pve_network_routed_cidr: "10.0.0.1/24"
+pve_network_routed_snat: true
+
+# /dev/nvme0n1 stays as local-lvm (PVE installer default) for k3s VM disks.
+# /dev/sda split into two LVs in one VG - online resize: lvextend + resize2fs
+pve_storage_pools:
+  - name: sda-data
+    state: present
+    type: lvm-dir
+    disk:
+      device: /dev/sda
+      wipe: false
+      vg_name: vg-sda
+    lvm_dir:
+      lv_name: lv-data
+      lv_size: 900G
+      filesystem: ext4
+      mount_point: /mnt/pve/sda-data
+      mount_options: defaults,noatime,nodiratime
+    content:
+      - images
+      - iso
+      - vztmpl
+      - snippets   # cloud-init user-data uploaded by the k3s-cluster Terraform
+
+pve_iommu_enabled: true
+pve_iommu_cpu_vendor: intel
+pve_iommu_blacklist_drivers: []
+
+pve_users_groups:
+  - name: admins
+    comment: "PVE Administrators"
+
+pve_users_custom_roles:
+  - name: TerraformProvisioner
+    privs:
+      # VM lifecycle
+      - VM.Allocate        # create and delete VMs
+      - VM.Clone           # clone templates
+      - VM.PowerMgmt       # start / stop / reboot
+      - VM.Audit           # read VM config (required for state reads)
+      - VM.GuestAgent.Audit # read IP via guest agent after boot
+      - Sys.Audit          # read node and storage status (bpg provider)
+      # VM config - only what Terraform actually sets
+      - VM.Config.CDROM    # cloud-init drive is a CDROM-type device
+      - VM.Config.Cloudinit
+      - VM.Config.CPU
+      - VM.Config.Disk
+      - VM.Config.HWType
+      - VM.Config.Memory
+      - VM.Config.Network
+      - VM.Config.Options  # name, description, tags, boot order
+      # Network - required when the bridge is in an SDN zone (vmbr10)
+      - SDN.Use
+      # Storage
+      - Datastore.Allocate       # create/remove the cloud-init snippet volume
+      - Datastore.AllocateSpace
+      - Datastore.Audit
+
+  - name: PackerBuilder
+    privs:
+      # VM lifecycle
+      - VM.Allocate        # create build VM and convert to template
+      - VM.PowerMgmt       # start / stop build VM
+      - VM.Audit           # read VM config
+      - VM.Console         # send boot commands via VNC/SPICE
+      - VM.GuestAgent.Audit # read IP via QEMU guest agent (SSH address discovery)
+      # VM config - everything needed to build from ISO
+      - VM.Config.CDROM    # attach Ubuntu ISO
+      - VM.Config.Cloudinit
+      - VM.Config.CPU
+      - VM.Config.Disk
+      - VM.Config.HWType
+      - VM.Config.Memory
+      - VM.Config.Network
+      - VM.Config.Options
+      # Storage
+      - Datastore.Allocate         # remove temporary uploaded ISO volumes
+      - Datastore.AllocateSpace    # build disk
+      - Datastore.AllocateTemplate # upload ISO / convert to template
+      - Datastore.Audit
+      # Network - required when bridge is in an SDN zone
+      - SDN.Use
+
+pve_users_list:
+  - userid: "ares@pve"
+    password: "{{ pve_secret_password_ares }}"
+    group: admins
+    comment: "Personal admin"
+    role: Administrator
+    acl_path: "/"
+
+  - userid: "terraform@pve"
+    password: "{{ pve_secret_password_terraform }}"
+    comment: "Terraform/OpenTofu"
+    role: TerraformProvisioner
+    acl_path: "/"
+
+  - userid: "packer@pve"
+    password: "{{ pve_secret_password_packer }}"
+    comment: "Packer image builder"
+    role: PackerBuilder
+    acl_path: "/"
+
+
+# Token secrets are printed once on first run and saved to .credentials/tokens.txt
+pve_users_tokens:
+  - userid: "terraform@pve"
+    token_name: "terraform-token"
+    privsep: false
+    comment: "Terraform provider token"
+
+  - userid: "packer@pve"
+    token_name: "packer-token"
+    privsep: false
+    comment: "Packer image builder token"
+
+pve_notifications_enabled: true
+pve_notifications_mail_to: "admin@edgedatalab.com"
+pve_notifications_mail_from: "pve01@edgedatalab.com"
+
+pve_monitoring_smart_enabled: true
+pve_monitoring_smart_mail: "{{ pve_notifications_mail_to }}"
+pve_monitoring_metrics_server_enabled: false
+
+pve_backups_jobs: []

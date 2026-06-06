@@ -1,0 +1,43 @@
+---
+- name: PVE Packages | Full dist-upgrade (security patches)
+  ansible.builtin.apt:
+    upgrade: dist
+    update_cache: false
+    autoremove: true
+    autoclean: true
+  register: apt_upgrade_result
+
+- name: PVE Packages | Install required packages
+  ansible.builtin.apt:
+    name: "{{ pve_common_packages }}"
+    state: present
+    update_cache: false
+
+- name: PVE Packages | Enable unattended-upgrades for security updates only
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/50unattended-upgrades-proxmox
+    content: |
+      Unattended-Upgrade::Origins-Pattern {
+          "origin=Debian,codename=${distro_codename},label=Debian-Security";
+      };
+      Unattended-Upgrade::AutoFixInterruptedDpkg "true";
+      Unattended-Upgrade::MinimalSteps "true";
+      Unattended-Upgrade::Remove-Unused-Kernel-Packages "false";
+      Unattended-Upgrade::Remove-New-Unused-Dependencies "false";
+      Unattended-Upgrade::Automatic-Reboot "false";
+      Unattended-Upgrade::Mail "{{ pve_notifications_mail_to | default('') }}";
+      Unattended-Upgrade::MailReport "only-on-error";
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: PVE Packages | Enable unattended-upgrades service
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades-proxmox
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+      APT::Periodic::AutocleanInterval "7";
+    owner: root
+    group: root
+    mode: "0644"

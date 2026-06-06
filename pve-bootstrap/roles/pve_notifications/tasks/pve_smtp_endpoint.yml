@@ -1,0 +1,58 @@
+---
+- name: PVE SMTP Endpoint | Check if endpoint exists
+  ansible.builtin.command:
+    cmd: pvesh get /cluster/notifications/endpoints/smtp/ansible-smtp --output-format json
+  register: _smtp_endpoint_check
+  changed_when: false
+  failed_when: false
+
+- name: PVE SMTP Endpoint | Create SMTP endpoint
+  ansible.builtin.command:
+    cmd: >-
+      pvesh create /cluster/notifications/endpoints/smtp
+      --name ansible-smtp
+      --server {{ pve_notifications_smtp_host }}
+      --port {{ pve_notifications_smtp_port }}
+      --mode {{ pve_notifications_smtp_mode | default('starttls') }}
+      --from-address {{ pve_notifications_mail_from }}
+      --mailto {{ pve_notifications_mail_to }}
+      {% if pve_notifications_smtp_user != '' %}
+      --username {{ pve_notifications_smtp_user }}
+      --password {{ pve_notifications_smtp_password }}
+      {% endif %}
+      --comment "Managed by Ansible"
+  when: _smtp_endpoint_check.rc != 0
+  no_log: true
+
+- name: PVE SMTP Endpoint | Update SMTP endpoint
+  ansible.builtin.command:
+    cmd: >-
+      pvesh set /cluster/notifications/endpoints/smtp/ansible-smtp
+      --server {{ pve_notifications_smtp_host }}
+      --port {{ pve_notifications_smtp_port }}
+      --mode {{ pve_notifications_smtp_mode | default('starttls') }}
+      --from-address {{ pve_notifications_mail_from }}
+      --mailto {{ pve_notifications_mail_to }}
+      {% if pve_notifications_smtp_user != '' %}
+      --username {{ pve_notifications_smtp_user }}
+      --password {{ pve_notifications_smtp_password }}
+      {% endif %}
+  when: _smtp_endpoint_check.rc == 0
+  no_log: true
+  changed_when: false
+
+- name: PVE SMTP Endpoint | Check if matcher exists
+  ansible.builtin.command:
+    cmd: pvesh get /cluster/notifications/matchers/ansible-smtp-matcher --output-format json
+  register: _smtp_matcher_check
+  changed_when: false
+  failed_when: false
+
+- name: PVE SMTP Endpoint | Create matcher routing all events to ansible-smtp
+  ansible.builtin.command:
+    cmd: >-
+      pvesh create /cluster/notifications/matchers
+      --name ansible-smtp-matcher
+      --target ansible-smtp
+      --comment "Managed by Ansible"
+  when: _smtp_matcher_check.rc != 0

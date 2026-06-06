@@ -1,0 +1,14 @@
+{% for disk in physical_disks.stdout_lines | default([]) %}
+{{ disk }} -a \
+  -o on \
+  -S on \
+  -s "S/../.././(02|14)|L/../../7/03"{% if pve_monitoring_smart_mail != '' %} \
+  -m {{ pve_monitoring_smart_mail }} -M exec /usr/share/smartmontools/smartd-runner{% endif %}
+
+{% endfor %}
+# Fallback: auto-detect all disks not explicitly listed
+DEVICESCAN -a \
+  -o on \
+  -S on \
+  -s "S/../.././(02|14)|L/../../7/03"{% if pve_monitoring_smart_mail != '' %} \
+  -m {{ pve_monitoring_smart_mail }} -M exec /usr/share/smartmontools/smartd-runner{% endif %}

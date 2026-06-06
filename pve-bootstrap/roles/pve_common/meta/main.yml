@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  role_name: pve_common
+  namespace: areslabs
+  author: Arès
+  description: "Base OS hardening for Proxmox VE: repos, packages, SSH, sysctl, NTP, nag suppression"
+  company: AresLabs
+  license: "Proprietary - For internal use only"
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+  galaxy_tags:
+    - proxmox
+    - system
+    - hardening
+    - ssh
+    - ntp
+  dependencies:
+    - name: ansible.posix
+      version: ">=1.5.0"

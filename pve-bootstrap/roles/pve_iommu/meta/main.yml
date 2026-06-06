@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  role_name: pve_iommu
+  namespace: areslabs
+  author: Arès
+  description: "PVE IOMMU/VFIO setup for PCI passthrough: GRUB, kernel modules, driver blacklists"
+  company: AresLabs
+  license: "Proprietary - For internal use only"
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+  galaxy_tags:
+    - proxmox
+    - iommu
+    - vfio
+    - passthrough

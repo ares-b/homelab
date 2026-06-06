@@ -1,0 +1,45 @@
+---
+- name: PVE Firewall | Ensure /etc/pve/firewall directory exists
+  ansible.builtin.command:
+    cmd: mkdir -p /etc/pve/firewall
+    creates: /etc/pve/firewall
+  when: state == 'present'
+
+# Rendered to a staging file because the template module's atomic rename does
+# not work on pmxcfs (/etc/pve). The copy below only runs when the content
+# actually differs, so it stays idempotent across reboots that clear /tmp.
+- name: PVE Firewall | Render cluster firewall to staging file
+  ansible.builtin.template:
+    src: cluster.fw.j2
+    dest: /tmp/cluster.fw
+    mode: "0600"
+  changed_when: false
+  when: state == 'present'
+
+- name: PVE Firewall | Compare staged config with live config
+  ansible.builtin.command:
+    cmd: cmp -s /tmp/cluster.fw /etc/pve/firewall/cluster.fw
+  register: _fw_cmp
+  changed_when: false
+  failed_when: false
+  when: state == 'present'
+
+- name: PVE Firewall | Copy rendered config to pmxcfs
+  ansible.builtin.command:
+    cmd: cp /tmp/cluster.fw /etc/pve/firewall/cluster.fw
+  when:
+    - state == 'present'
+    - _fw_cmp.rc | default(1) != 0
+
+- name: PVE Firewall | Remove staging file
+  ansible.builtin.file:
+    path: /tmp/cluster.fw
+    state: absent
+  changed_when: false
+  when: state == 'present'
+
+- name: PVE Firewall | Remove cluster firewall configuration
+  ansible.builtin.file:
+    path: /etc/pve/firewall/cluster.fw
+    state: absent
+  when: state == 'absent'

@@ -1,0 +1,41 @@
+---
+state: present
+
+pve_security_trusted_networks:
+  - 192.168.0.0/24
+
+pve_security_firewall_enabled: true
+pve_security_firewall_policy_in: DROP
+pve_security_firewall_policy_out: ACCEPT
+pve_security_firewall_log_ratelimit: "enable=1,burst=10,rate=5/second"
+
+# Ports always open from trusted networks
+pve_security_open_ports:
+  - port: 22
+    proto: tcp
+    comment: "SSH"
+  - port: 8006
+    proto: tcp
+    comment: "Proxmox Web UI"
+  - port: 3128
+    proto: tcp
+    comment: "SPICE Proxy"
+  - port: "5900:5999"
+    proto: tcp
+    comment: "VNC/SPICE console"
+
+# SSH user CA (infra tier). When enabled, pve_security_ssh_ca_public_key must be
+# set (typically from ssh-ca/infra/ca.pub). Maps unix login user -> principals.
+pve_security_ssh_ca_enabled: false
+pve_security_ssh_ca_public_key: ""
+pve_security_ssh_ca_logins:
+  ares:
+    - ares
+
+pve_security_fail2ban_enabled: true
+pve_security_fail2ban_maxretry: 5
+pve_security_fail2ban_bantime: 3600
+pve_security_fail2ban_findtime: 600
+pve_security_fail2ban_ignoreips:
+  - 127.0.0.1/8
+  - 192.168.0.0/24

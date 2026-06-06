@@ -1,0 +1,12 @@
+---
+# Datacenter-wide options in /etc/pve/datacenter.cfg.
+# Keyboard layout drives the QEMU '-k' flag for VM consoles. It MUST be en-us
+# for Packer/automation that types boot commands via the VNC console: a non-US
+# layout (e.g. fr/AZERTY) remaps symbols like '/ = -' and silently corrupts the
+# typed kernel cmdline, leaving the installer interactive.
+- name: PVE Common | Set datacenter keyboard layout
+  ansible.builtin.lineinfile:
+    path: /etc/pve/datacenter.cfg
+    regexp: '^keyboard:'
+    line: "keyboard: {{ pve_common_datacenter_keyboard }}"
+  when: pve_common_datacenter_keyboard | length > 0

@@ -1,0 +1,7 @@
+---
+state: present
+
+pve_users_custom_roles: []
+pve_users_groups: []
+pve_users_list: []
+pve_users_tokens: []

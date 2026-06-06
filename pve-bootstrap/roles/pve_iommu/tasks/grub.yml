@@ -1,0 +1,59 @@
+---
+- name: PVE IOMMU GRUB | Set Intel IOMMU params
+  ansible.builtin.replace:
+    path: /etc/default/grub
+    regexp: '(?m)^(GRUB_CMDLINE_LINUX_DEFAULT=")((?:(?!intel_iommu=on).)*?)(")'
+    replace: '\1\2 intel_iommu=on iommu=pt\3'
+    backup: true
+  register: _grub_intel
+  when:
+    - pve_iommu_enabled | bool
+    - pve_iommu_cpu_vendor == 'intel'
+    - state == 'present'
+  notify:
+    - Update GRUB
+    - Update initramfs
+
+- name: PVE IOMMU GRUB | Set AMD IOMMU params
+  ansible.builtin.replace:
+    path: /etc/default/grub
+    regexp: '(?m)^(GRUB_CMDLINE_LINUX_DEFAULT=")((?:(?!amd_iommu=on).)*?)(")'
+    replace: '\1\2 amd_iommu=on iommu=pt\3'
+    backup: true
+  register: _grub_amd
+  when:
+    - pve_iommu_enabled | bool
+    - pve_iommu_cpu_vendor == 'amd'
+    - state == 'present'
+  notify:
+    - Update GRUB
+    - Update initramfs
+
+- name: PVE IOMMU GRUB | Remove Intel IOMMU params
+  ansible.builtin.replace:
+    path: /etc/default/grub
+    regexp: '\s*intel_iommu=on\s*iommu=pt'
+    replace: ''
+    backup: true
+  when:
+    - state == 'absent'
+    - pve_iommu_cpu_vendor == 'intel'
+  notify: Update GRUB
+
+- name: PVE IOMMU GRUB | Remove AMD IOMMU params
+  ansible.builtin.replace:
+    path: /etc/default/grub
+    regexp: '\s*amd_iommu=on\s*iommu=pt'
+    replace: ''
+    backup: true
+  when:
+    - state == 'absent'
+    - pve_iommu_cpu_vendor == 'amd'
+  notify: Update GRUB
+
+- name: PVE IOMMU GRUB | Flag reboot needed
+  ansible.builtin.set_fact:
+    pve_iommu_reboot_needed: true
+  when: >-
+    (_grub_intel is defined and _grub_intel is changed) or
+    (_grub_amd is defined and _grub_amd is changed)

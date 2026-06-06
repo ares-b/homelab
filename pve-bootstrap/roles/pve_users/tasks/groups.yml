@@ -1,0 +1,16 @@
+---
+- name: "PVE Groups | Create group {{ group.name }}"
+  ansible.builtin.command:
+    cmd: >-
+      pveum group add {{ group.name }}
+      --comment "{{ group.comment | default('') }}"
+  when:
+    - state == 'present'
+    - group.name not in pveum_existing_groups
+
+- name: "PVE Groups | Remove group {{ group.name }}"
+  ansible.builtin.command:
+    cmd: "pveum group delete {{ group.name }}"
+  when:
+    - state == 'absent'
+    - group.name in pveum_existing_groups

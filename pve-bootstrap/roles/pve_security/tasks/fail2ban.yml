@@ -1,0 +1,40 @@
+---
+- name: PVE Fail2ban | Ensure fail2ban is installed
+  ansible.builtin.apt:
+    name: fail2ban
+    state: "{{ 'present' if state == 'present' else 'absent' }}"
+
+- name: PVE Fail2ban | Deploy Proxmox filter
+  ansible.builtin.template:
+    src: pve-fail2ban-filter.conf.j2
+    dest: /etc/fail2ban/filter.d/proxmox.conf
+    owner: root
+    group: root
+    mode: "0644"
+  when: state == 'present'
+  notify: Restart fail2ban
+
+- name: PVE Fail2ban | Deploy Proxmox + SSH jail configuration
+  ansible.builtin.template:
+    src: pve-fail2ban-jail.conf.j2
+    dest: /etc/fail2ban/jail.d/proxmox.conf
+    owner: root
+    group: root
+    mode: "0644"
+  when: state == 'present'
+  notify: Restart fail2ban
+
+- name: PVE Fail2ban | Remove Proxmox jail configuration
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/fail2ban/filter.d/proxmox.conf
+    - /etc/fail2ban/jail.d/proxmox.conf
+  when: state == 'absent'
+
+- name: PVE Fail2ban | Ensure fail2ban is running and enabled
+  ansible.builtin.service:
+    name: fail2ban
+    state: "{{ 'started' if state == 'present' else 'stopped' }}"
+    enabled: "{{ state == 'present' }}"

@@ -1,0 +1,40 @@
+---
+- name: PVE Network | Validate state
+  ansible.builtin.fail:
+    msg: "Invalid state '{{ state }}'. Must be 'present' or 'absent'."
+  when: state not in ['present', 'absent']
+
+- name: PVE Network | Enable IP forwarding (required for VM internet access)
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: "{{ '1' if pve_network_ip_forward else '0' }}"
+    sysctl_file: /etc/sysctl.d/99-pve-network.conf
+    state: present
+    reload: true
+
+- name: PVE Network | Enable IPv6 forwarding
+  ansible.posix.sysctl:
+    name: net.ipv6.conf.all.forwarding
+    value: "{{ '1' if pve_network_ipv6_forward else '0' }}"
+    sysctl_file: /etc/sysctl.d/99-pve-network.conf
+    state: present
+    reload: true
+
+- name: PVE Network | Load br_netfilter module at boot
+  community.general.modprobe:
+    name: br_netfilter
+    state: present
+    persistent: present
+  when: state == 'present'
+
+
+- name: PVE Network | Configure VLAN-aware bridges
+  ansible.builtin.include_tasks: bridge.yml
+  loop: "{{ pve_network_bridges }}"
+  loop_control:
+    loop_var: bridge
+  when: state == 'present'
+
+- name: PVE Network | Configure routed VM bridge
+  ansible.builtin.include_tasks: routed.yml
+  when: state == 'present'

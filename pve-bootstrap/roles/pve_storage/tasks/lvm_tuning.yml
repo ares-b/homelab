@@ -1,0 +1,24 @@
+---
+- name: PVE LVM | Enable TRIM/discard support in lvm.conf
+  ansible.builtin.lineinfile:
+    path: /etc/lvm/lvm.conf
+    regexp: '^\s*issue_discards\s*='
+    line: "\tissue_discards = {{ pve_storage_lvm_issue_discards }}"
+    insertafter: '# issue_discards'
+    backup: true
+
+- name: PVE LVM | Set thin pool auto-extend threshold
+  ansible.builtin.lineinfile:
+    path: /etc/lvm/lvm.conf
+    regexp: '^\s*thin_pool_autoextend_threshold\s*='
+    line: "\tthin_pool_autoextend_threshold = {{ pve_storage_lvm_thin_autoextend_threshold }}"
+    insertafter: '# thin_pool_autoextend_threshold'
+    backup: false
+
+- name: PVE LVM | Set thin pool auto-extend percent
+  ansible.builtin.lineinfile:
+    path: /etc/lvm/lvm.conf
+    regexp: '^\s*thin_pool_autoextend_percent\s*='
+    line: "\tthin_pool_autoextend_percent = {{ pve_storage_lvm_thin_autoextend_percent }}"
+    insertafter: '# thin_pool_autoextend_percent'
+    backup: false

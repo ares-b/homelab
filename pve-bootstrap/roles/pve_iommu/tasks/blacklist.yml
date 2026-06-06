@@ -1,0 +1,20 @@
+---
+- name: PVE IOMMU Blacklist | Write driver blacklist config
+  ansible.builtin.copy:
+    dest: /etc/modprobe.d/pve-blacklist-passthrough.conf
+    content: |
+      {% for driver in pve_iommu_blacklist_drivers %}
+      blacklist {{ driver }}
+      {% endfor %}
+    owner: root
+    group: root
+    mode: "0644"
+  when: state == 'present'
+  notify: Update initramfs
+
+- name: PVE IOMMU Blacklist | Remove blacklist config on absent
+  ansible.builtin.file:
+    path: /etc/modprobe.d/pve-blacklist-passthrough.conf
+    state: absent
+  when: state == 'absent'
+  notify: Update initramfs

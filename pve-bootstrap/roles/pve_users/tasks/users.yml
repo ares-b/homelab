@@ -1,0 +1,92 @@
+---
+- name: "PVE Users | Create user {{ user.userid }}"
+  ansible.builtin.command:
+    cmd: >-
+      pveum user add {{ user.userid }}
+      --password "{{ user.password }}"
+      --comment "{{ user.comment | default('') }}"
+      {% if user.group is defined %}--groups {{ user.group }}{% endif %}
+  when:
+    - state == 'present'
+    - user.userid not in pveum_existing_users
+  no_log: true
+
+# pveum cannot read a password to compare, so check it by attempting a login.
+# A 200 means the stored password already matches; only reset on 401. This keeps
+# the secret as the source of truth while staying idempotent.
+- name: "PVE Users | Verify current password for {{ user.userid }}"
+  ansible.builtin.uri:
+    url: https://localhost:8006/api2/json/access/ticket
+    method: POST
+    body_format: form-urlencoded
+    body:
+      username: "{{ user.userid }}"
+      password: "{{ user.password }}"
+    validate_certs: false
+    status_code: [200, 401]
+  register: _pw_check
+  changed_when: false
+  no_log: true
+  when:
+    - state == 'present'
+    - user.userid in pveum_existing_users
+    - user.password is defined
+
+- name: "PVE Users | Reset password for {{ user.userid }}"
+  ansible.builtin.command:
+    cmd: pvesh set /access/password --userid {{ user.userid }} --password "{{ user.password }}"
+  no_log: true
+  when:
+    - state == 'present'
+    - user.userid in pveum_existing_users
+    - user.password is defined
+    - _pw_check.status | default(200) != 200
+
+- name: "PVE Users | Update group membership for {{ user.userid }}"
+  vars:
+    _current_groups: >-
+      {{
+        pveum_existing_users_data
+        | selectattr('userid', '==', user.userid)
+        | map(attribute='groups')
+        | first
+        | default('')
+        | split(',')
+        | reject('equalto', '')
+        | list
+      }}
+  ansible.builtin.command:
+    cmd: "pveum user modify {{ user.userid }} --groups {{ user.group }}"
+  when:
+    - state == 'present'
+    - user.userid in pveum_existing_users
+    - user.group is defined
+    - user.group not in _current_groups
+
+- name: "PVE Users | Assign ACL for {{ user.userid }}"
+  vars:
+    _acl_exists: >-
+      {{
+        pveum_existing_acls
+        | selectattr('ugid', '==', user.userid)
+        | selectattr('roleid', '==', user.role)
+        | selectattr('path', '==', user.acl_path | default('/'))
+        | list
+        | length > 0
+      }}
+  ansible.builtin.command:
+    cmd: >-
+      pveum acl modify {{ user.acl_path | default('/') }}
+      --users {{ user.userid }}
+      --roles {{ user.role }}
+  when:
+    - state == 'present'
+    - user.role is defined
+    - not _acl_exists
+
+- name: "PVE Users | Remove user {{ user.userid }}"
+  ansible.builtin.command:
+    cmd: "pveum user delete {{ user.userid }}"
+  when:
+    - state == 'absent'
+    - user.userid in pveum_existing_users

@@ -1,0 +1,31 @@
+---
+- name: PVE SMART | Install smartmontools and nvme-cli
+  ansible.builtin.apt:
+    name:
+      - smartmontools
+      - nvme-cli
+    state: "{{ 'present' if state == 'present' else 'absent' }}"
+
+- name: PVE SMART | Discover all physical disks
+  ansible.builtin.shell:
+    cmd: "lsblk -d -o NAME,TYPE --json | python3 -c \"import json,sys; [print('/dev/'+d['name']) for d in json.load(sys.stdin)['blockdevices'] if d['type'] in ('disk',)]\""
+  register: physical_disks
+  changed_when: false
+  when: state == 'present'
+
+- name: PVE SMART | Configure smartd for all discovered disks
+  ansible.builtin.template:
+    src: smartd.conf.j2
+    dest: /etc/smartd.conf
+    owner: root
+    group: root
+    mode: "0644"
+    backup: true
+  when: state == 'present'
+  notify: Restart smartd
+
+- name: PVE SMART | Ensure smartd is running and enabled
+  ansible.builtin.service:
+    name: smartd
+    state: "{{ 'started' if state == 'present' else 'stopped' }}"
+    enabled: "{{ state == 'present' }}"

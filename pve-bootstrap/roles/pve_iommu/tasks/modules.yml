@@ -1,0 +1,34 @@
+---
+- name: PVE IOMMU Modules | Add VFIO modules to /etc/modules
+  ansible.builtin.lineinfile:
+    path: /etc/modules
+    line: "{{ item }}"
+    state: "{{ 'present' if (pve_iommu_enabled and state == 'present') else 'absent' }}"
+    create: true
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ pve_iommu_vfio_modules }}"
+  notify: Update initramfs
+
+- name: PVE IOMMU Modules | Create modprobe options file for VFIO
+  ansible.builtin.copy:
+    dest: /etc/modprobe.d/vfio.conf
+    content: |
+      options vfio-pci ids=
+      softdep nouveau pre: vfio-pci
+      softdep snd_hda_intel pre: vfio-pci
+    owner: root
+    group: root
+    mode: "0644"
+  when:
+    - pve_iommu_enabled | bool
+    - state == 'present'
+  notify: Update initramfs
+
+- name: PVE IOMMU Modules | Remove VFIO modprobe config on absent
+  ansible.builtin.file:
+    path: /etc/modprobe.d/vfio.conf
+    state: absent
+  when: state == 'absent'
+  notify: Update initramfs

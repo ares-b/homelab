@@ -1,0 +1,16 @@
+---
+- name: PVE Security | Validate state
+  ansible.builtin.fail:
+    msg: "Invalid state '{{ state }}'. Must be 'present' or 'absent'."
+  when: state not in ['present', 'absent']
+
+- name: PVE Security | Configure datacenter firewall
+  ansible.builtin.include_tasks: firewall.yml
+
+- name: PVE Security | Configure fail2ban
+  ansible.builtin.include_tasks: fail2ban.yml
+  when: pve_security_fail2ban_enabled | bool
+
+- name: PVE Security | Configure SSH CA trust
+  ansible.builtin.include_tasks: ssh_ca.yml
+  when: pve_security_ssh_ca_enabled | bool

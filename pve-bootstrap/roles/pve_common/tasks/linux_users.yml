@@ -1,0 +1,46 @@
+---
+- name: "Linux Users | Create group {{ linux_user.name }}"
+  ansible.builtin.group:
+    name: "{{ linux_user.name }}"
+    state: "{{ 'present' if linux_user.state | default('present') == 'present' else 'absent' }}"
+
+- name: "Linux Users | Create user {{ linux_user.name }}"
+  ansible.builtin.user:
+    name: "{{ linux_user.name }}"
+    group: "{{ linux_user.name }}"
+    groups: "{{ linux_user.groups | default([]) | join(',') }}"
+    append: true
+    shell: "{{ linux_user.shell | default('/bin/bash') }}"
+    create_home: true
+    state: "{{ linux_user.state | default('present') }}"
+    password: "{{ linux_user.password | default(omit) }}"
+    password_lock: "{{ linux_user.password_lock | default(true) }}"
+
+- name: "Linux Users | Deploy SSH authorized keys for {{ linux_user.name }}"
+  ansible.posix.authorized_key:
+    user: "{{ linux_user.name }}"
+    key: "{{ item }}"
+    state: present
+    exclusive: "{{ linux_user.exclusive_keys | default(false) }}"
+  loop: "{{ linux_user.ssh_authorized_keys }}"
+  when:
+    - linux_user.state | default('present') == 'present'
+    - linux_user.ssh_authorized_keys | default([]) | length > 0
+
+- name: "Linux Users | Configure sudo for {{ linux_user.name }}"
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ linux_user.name }}"
+    content: "{{ linux_user.name }} ALL=(ALL) {{ 'NOPASSWD:' if linux_user.sudo_nopasswd | default(true) | bool else '' }}ALL\n"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: visudo -cf %s
+  when:
+    - linux_user.state | default('present') == 'present'
+    - linux_user.sudo | default(false) | bool
+
+- name: "Linux Users | Remove sudo config for {{ linux_user.name }}"
+  ansible.builtin.file:
+    path: "/etc/sudoers.d/{{ linux_user.name }}"
+    state: absent
+  when: linux_user.state | default('present') == 'absent'

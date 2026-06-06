@@ -1,0 +1,20 @@
+---
+- name: PVE NTP | Set timezone
+  community.general.timezone:
+    name: "{{ pve_common_timezone }}"
+
+- name: PVE NTP | Deploy chrony configuration
+  ansible.builtin.template:
+    src: chrony.conf.j2
+    dest: /etc/chrony/chrony.conf
+    owner: root
+    group: root
+    mode: "0644"
+    backup: true
+  notify: Restart chrony
+
+- name: PVE NTP | Ensure chrony is running and enabled
+  ansible.builtin.service:
+    name: chrony
+    state: started
+    enabled: true

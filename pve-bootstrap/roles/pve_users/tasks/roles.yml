@@ -1,0 +1,33 @@
+---
+- name: "PVE Roles | Create custom role {{ role.name }}"
+  ansible.builtin.command:
+    cmd: "pveum role add {{ role.name }} --privs '{{ role.privs | join(',') }}'"
+  when:
+    - state == 'present'
+    - role.name not in pveum_existing_roles
+
+- name: "PVE Roles | Update privs on existing role {{ role.name }}"
+  vars:
+    _current_privs: >-
+      {{
+        pveum_existing_roles_data
+        | selectattr('roleid', '==', role.name)
+        | map(attribute='privs')
+        | first
+        | default('')
+        | split(',')
+        | sort
+      }}
+  ansible.builtin.command:
+    cmd: "pveum role modify {{ role.name }} --privs '{{ role.privs | join(',') }}'"
+  when:
+    - state == 'present'
+    - role.name in pveum_existing_roles
+    - _current_privs != (role.privs | sort)
+
+- name: "PVE Roles | Remove custom role {{ role.name }}"
+  ansible.builtin.command:
+    cmd: "pveum role delete {{ role.name }}"
+  when:
+    - state == 'absent'
+    - role.name in pveum_existing_roles

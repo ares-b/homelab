@@ -1,0 +1,79 @@
+---
+- name: "PVE Storage Dir | {{ pool.name }} - check if device exists"
+  ansible.builtin.stat:
+    path: "{{ pool.disk.device }}"
+  register: disk_stat
+
+- name: "PVE Storage Dir | {{ pool.name }} - fail if device not found"
+  ansible.builtin.fail:
+    msg: "Device {{ pool.disk.device }} does not exist on this host"
+  when: not disk_stat.stat.exists
+
+- name: "PVE Storage Dir | {{ pool.name }} - get current partition table"
+  ansible.builtin.command:
+    cmd: "parted -s {{ pool.disk.device }} print"
+  register: parted_info
+  changed_when: false
+  failed_when: false
+
+- name: "PVE Storage Dir | {{ pool.name }} - create GPT partition table"
+  community.general.parted:
+    device: "{{ pool.disk.device }}"
+    label: "{{ pool.disk.label | default('gpt') }}"
+    state: present
+  when:
+    - pool.state == 'present'
+    - pool.disk.wipe | default(false) or 'unrecognised disk label' in parted_info.stderr | default('')
+
+- name: "PVE Storage Dir | {{ pool.name }} - create partition"
+  community.general.parted:
+    device: "{{ pool.disk.device }}"
+    label: "{{ pool.disk.label | default('gpt') }}"
+    number: "{{ pool.dir.partition_number | default(1) }}"
+    state: present
+    part_start: "{{ pool.dir.part_start | default('0%') }}"
+    part_end: "{{ pool.dir.part_end | default('100%') }}"
+    fs_type: "{{ pool.dir.filesystem | default('ext4') }}"
+  when: pool.state == 'present'
+  register: parted_result
+
+- name: "PVE Storage Dir | {{ pool.name }} - detect partition path"
+  ansible.builtin.set_fact:
+    pool_partition_path: >-
+      {%- set dev = pool.disk.device -%}
+      {%- set num = pool.dir.partition_number | default(1) | string -%}
+      {%- if dev | regex_search('nvme|mmcblk') -%}
+        {{ dev }}p{{ num }}
+      {%- else -%}
+        {{ dev }}{{ num }}
+      {%- endif -%}
+
+- name: "PVE Storage Dir | {{ pool.name }} - create {{ pool.dir.filesystem }} filesystem"
+  community.general.filesystem:
+    fstype: "{{ pool.dir.filesystem | default('ext4') }}"
+    dev: "{{ pool_partition_path }}"
+    state: present
+  when: pool.state == 'present'
+
+- name: "PVE Storage Dir | {{ pool.name }} - unmount filesystem before removal"
+  ansible.posix.mount:
+    path: "{{ pool.dir.mount_point }}"
+    state: unmounted
+  when: pool.state == 'absent'
+
+- name: "PVE Storage Dir | {{ pool.name }} - ensure mount point exists"
+  ansible.builtin.file:
+    path: "{{ pool.dir.mount_point }}"
+    state: "{{ 'directory' if pool.state == 'present' else 'absent' }}"
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: "PVE Storage Dir | {{ pool.name }} - mount filesystem"
+  ansible.posix.mount:
+    path: "{{ pool.dir.mount_point }}"
+    src: "{{ pool_partition_path }}"
+    fstype: "{{ pool.dir.filesystem | default('ext4') }}"
+    opts: "{{ pool.dir.mount_options | default('defaults,noatime') }}"
+    state: "{{ 'mounted' if pool.state == 'present' else 'absent' }}"
+  when: pool.state == 'present'

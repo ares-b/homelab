@@ -1,0 +1,19 @@
+{% for server in pve_common_ntp_servers %}
+server {{ server }} iburst prefer
+{% endfor %}
+
+# Fallback public pool
+pool pool.ntp.org iburst
+
+driftfile /var/lib/chrony/drift
+makestep 1.0 3
+rtcsync
+logdir /var/log/chrony
+log tracking measurements statistics
+
+# Serve time to local VMs/containers
+{% for cidr in pve_common_ntp_allow %}
+allow {{ cidr }}
+{% endfor %}
+
+maxdistance 1.5

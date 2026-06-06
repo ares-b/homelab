@@ -1,0 +1,9 @@
+---
+state: present
+
+pve_monitoring_smart_enabled: true
+pve_monitoring_smart_mail: ""
+
+# PVE built-in metrics server push (InfluxDB/Graphite)
+pve_monitoring_metrics_server_enabled: false
+pve_monitoring_metrics_server: {}

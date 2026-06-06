@@ -1,0 +1,57 @@
+---
+- name: PVE Users | Validate state
+  ansible.builtin.fail:
+    msg: "Invalid state '{{ state }}'. Must be 'present' or 'absent'."
+  when: state not in ['present', 'absent']
+
+- name: PVE Users | Gather existing state
+  ansible.builtin.command:
+    cmd: "{{ item.cmd }}"
+  register: pveum_state_raw
+  changed_when: false
+  loop:
+    - { key: roles,  cmd: "pveum role list --output-format json" }
+    - { key: groups, cmd: "pveum group list --output-format json" }
+    - { key: users,  cmd: "pveum user list --output-format json --full" }
+    - { key: acls,   cmd: "pveum acl list --output-format json" }
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: PVE Users | Parse existing state
+  ansible.builtin.set_fact:
+    pveum_existing_roles:      "{{ pveum_state_raw.results[0].stdout | from_json | map(attribute='roleid')  | list }}"
+    pveum_existing_roles_data: "{{ pveum_state_raw.results[0].stdout | from_json }}"
+    pveum_existing_groups:     "{{ pveum_state_raw.results[1].stdout | from_json | map(attribute='groupid') | list }}"
+    pveum_existing_users_data: "{{ pveum_state_raw.results[2].stdout | from_json }}"
+    pveum_existing_users:      "{{ pveum_state_raw.results[2].stdout | from_json | map(attribute='userid')  | list }}"
+    pveum_existing_acls:       "{{ pveum_state_raw.results[3].stdout | from_json }}"
+
+- name: PVE Users | Manage custom roles
+  ansible.builtin.include_tasks: roles.yml
+  loop: "{{ pve_users_custom_roles }}"
+  loop_control:
+    loop_var: role
+    label: "{{ role.name }}"
+  when: pve_users_custom_roles | length > 0
+
+- name: PVE Users | Manage groups
+  ansible.builtin.include_tasks: groups.yml
+  loop: "{{ pve_users_groups }}"
+  loop_control:
+    loop_var: group
+    label: "{{ group.name }}"
+
+- name: PVE Users | Manage users
+  ansible.builtin.include_tasks: users.yml
+  loop: "{{ pve_users_list }}"
+  loop_control:
+    loop_var: user
+    label: "{{ user.userid }}"
+
+- name: PVE Users | Manage API tokens
+  ansible.builtin.include_tasks: tokens.yml
+  loop: "{{ pve_users_tokens }}"
+  loop_control:
+    loop_var: token
+    label: "{{ token.userid }}!{{ token.token_name }}"
+  when: pve_users_tokens | length > 0

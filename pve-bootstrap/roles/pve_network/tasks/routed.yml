@@ -1,0 +1,40 @@
+---
+# Optional routed VM bridge, toggled by pve_network_routed_enabled. When on, an
+# internal bridge holds the subnet gateway IP and VMs get routable addresses;
+# the upstream router needs a static route for the subnet back to this host.
+# When off, the managed block is removed and vmbr0 networking is left untouched.
+# IP forwarding (set in main.yml) is required.
+# pve_network_routed_snat adds an internet-only masquerade for routers that do
+# not NAT the routed subnet to the WAN; LAN-bound traffic stays routed.
+
+- name: PVE Network | Validate routed bridge config
+  ansible.builtin.assert:
+    that:
+      - pve_network_routed_bridge | length > 0
+      - pve_network_routed_cidr is match('^[0-9.]+/[0-9]+$')
+    fail_msg: "pve_network_routed_cidr must be address/prefix, e.g. 10.0.0.1/24"
+  when: pve_network_routed_enabled
+
+- name: "PVE Network | Manage routed bridge {{ pve_network_routed_bridge }}"
+  ansible.builtin.blockinfile:
+    path: /etc/network/interfaces
+    # Custom marker text so the end marker (which Proxmox reads as the iface
+    # comment, being the line after the stanza) is a clean phrase rather than a
+    # "BEGIN/END ..." line. 'auto' stays first so ifupdown2 brings the bridge up.
+    marker: "# {mark}"
+    marker_begin: "Ansible managed: {{ pve_network_routed_bridge }} (begin)"
+    marker_end: "Ansible managed: {{ pve_network_routed_bridge }}"
+    state: "{{ 'present' if pve_network_routed_enabled else 'absent' }}"
+    backup: true
+    block: |
+      auto {{ pve_network_routed_bridge }}
+      iface {{ pve_network_routed_bridge }} inet static
+          address {{ pve_network_routed_cidr }}
+          bridge-ports none
+          bridge-stp off
+          bridge-fd 0
+      {% if pve_network_routed_snat %}
+          post-up   iptables -t nat -C POSTROUTING -s {{ pve_network_routed_subnet }} ! -d {{ pve_network_routed_lan_subnet }} -o {{ pve_network_routed_uplink }} -j MASQUERADE 2>/dev/null || iptables -t nat -A POSTROUTING -s {{ pve_network_routed_subnet }} ! -d {{ pve_network_routed_lan_subnet }} -o {{ pve_network_routed_uplink }} -j MASQUERADE
+          post-down iptables -t nat -D POSTROUTING -s {{ pve_network_routed_subnet }} ! -d {{ pve_network_routed_lan_subnet }} -o {{ pve_network_routed_uplink }} -j MASQUERADE 2>/dev/null || true
+      {% endif %}
+  notify: Reload network interfaces

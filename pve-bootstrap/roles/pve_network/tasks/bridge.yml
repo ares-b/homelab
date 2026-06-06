@@ -1,0 +1,37 @@
+---
+- name: "PVE Bridge | Check {{ bridge.name }} exists in interfaces"
+  ansible.builtin.command:
+    cmd: "grep -c 'auto {{ bridge.name }}\\|iface {{ bridge.name }}' /etc/network/interfaces"
+  register: bridge_exists
+  changed_when: false
+  failed_when: false
+
+- name: "PVE Bridge | Warn if {{ bridge.name }} not found"
+  ansible.builtin.debug:
+    msg: "Bridge {{ bridge.name }} not found in /etc/network/interfaces - skipping VLAN config"
+  when: bridge_exists.stdout | int == 0
+
+- name: "PVE Bridge | Set bridge-vlan-aware on {{ bridge.name }}"
+  ansible.builtin.lineinfile:
+    path: /etc/network/interfaces
+    regexp: "^\tbridge-vlan-aware "
+    line: "\tbridge-vlan-aware {{ 'yes' if bridge.vlan_aware else 'no' }}"
+    insertafter: "iface {{ bridge.name }} inet"
+    backup: true
+  when:
+    - bridge_exists.stdout | int > 0
+    - bridge.vlan_aware is defined
+  notify: Reload network interfaces
+
+- name: "PVE Bridge | Set MTU on {{ bridge.name }}"
+  ansible.builtin.lineinfile:
+    path: /etc/network/interfaces
+    insertafter: "iface {{ bridge.name }} inet"
+    line: "\tmtu {{ bridge.mtu }}"
+    regexp: "^\tmtu "
+    backup: true
+  when:
+    - bridge_exists.stdout | int > 0
+    - bridge.mtu is defined
+    - bridge.mtu != 1500
+  notify: Reload network interfaces

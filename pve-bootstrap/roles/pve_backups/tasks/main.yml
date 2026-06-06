@@ -1,0 +1,24 @@
+---
+- name: PVE Backups | Validate state
+  ansible.builtin.fail:
+    msg: "Invalid state '{{ state }}'. Must be 'present' or 'absent'."
+  when: state not in ['present', 'absent']
+
+- name: PVE Backups | Get current backup jobs
+  ansible.builtin.command:
+    cmd: pvesh get /cluster/backup --output-format json
+  register: backup_jobs_raw
+  changed_when: false
+
+- name: PVE Backups | Parse existing backup jobs
+  ansible.builtin.set_fact:
+    existing_backup_jobs: "{{ backup_jobs_raw.stdout | from_json }}"
+    existing_backup_ids: "{{ backup_jobs_raw.stdout | from_json | map(attribute='id') | list }}"
+
+- name: PVE Backups | Process each backup job
+  ansible.builtin.include_tasks: job.yml
+  loop: "{{ pve_backups_jobs }}"
+  loop_control:
+    loop_var: job
+    label: "{{ job.id }}"
+  when: pve_backups_jobs | length > 0

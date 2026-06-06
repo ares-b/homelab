@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  role_name: pve_users
+  namespace: areslabs
+  author: Arès
+  description: "PVE user management: groups, users, roles, ACL assignments"
+  company: AresLabs
+  license: "Proprietary - For internal use only"
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+  galaxy_tags:
+    - proxmox
+    - users
+    - rbac
+    - security

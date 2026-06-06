@@ -1,0 +1,42 @@
+---
+- name: PVE Common | Validate state
+  ansible.builtin.fail:
+    msg: "Invalid state '{{ state }}'. Must be 'present' or 'absent'."
+  when: state not in ['present', 'absent']
+
+- name: PVE Common | Configure repositories
+  ansible.builtin.include_tasks: repos.yml
+  when: state == 'present'
+
+- name: PVE Common | Install and upgrade packages
+  ansible.builtin.include_tasks: packages.yml
+  when: state == 'present'
+
+- name: PVE Common | Harden SSH
+  ansible.builtin.include_tasks: ssh.yml
+
+- name: PVE Common | Configure datacenter options
+  ansible.builtin.include_tasks: datacenter.yml
+  when: state == 'present'
+
+- name: PVE Common | Tune sysctl
+  ansible.builtin.include_tasks: sysctl.yml
+  when: state == 'present'
+
+- name: PVE Common | Configure NTP
+  ansible.builtin.include_tasks: ntp.yml
+  when: state == 'present'
+
+- name: PVE Common | Suppress subscription nag
+  ansible.builtin.include_tasks: nag.yml
+  when:
+    - state == 'present'
+    - pve_common_suppress_nag | bool
+
+- name: PVE Common | Manage Linux system users
+  ansible.builtin.include_tasks: linux_users.yml
+  loop: "{{ pve_common_linux_users }}"
+  loop_control:
+    loop_var: linux_user
+    label: "{{ linux_user.name }}"
+  when: pve_common_linux_users | length > 0

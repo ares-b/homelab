@@ -1,0 +1,112 @@
+---
+- name: Prepare ansible SSH key
+  hosts: proxmox_nodes
+  gather_facts: false
+  run_once: true
+  tasks:
+    - name: Write ansible private key to temp file
+      ansible.builtin.copy:
+        content: "{{ pve_ansible_ssh_private_key_b64 | b64decode }}\n"
+        dest: /tmp/ansible_pve_key
+        mode: "0600"
+      delegate_to: localhost
+      no_log: true
+      changed_when: false
+
+- name: Check if ansible user is already reachable
+  hosts: proxmox_nodes
+  gather_facts: false
+  ignore_unreachable: true
+  tasks:
+    - name: Ping as ansible user
+      ansible.builtin.ping:
+      register: _ansible_ping
+      ignore_unreachable: true
+      ignore_errors: true
+
+    - name: Record ansible user reachability
+      ansible.builtin.set_fact:
+        _bootstrap_user_ready: "{{ _ansible_ping is not failed and _ansible_ping is not skipped }}"
+
+# Creates the ansible user as root. Runs only when that user is not yet
+# reachable; skipped afterwards to avoid repeated root-login refusals.
+- name: Ensure ansible service account
+  hosts: proxmox_nodes
+  gather_facts: false
+  ignore_unreachable: true
+  vars:
+    ansible_user: root
+    ansible_ssh_private_key_file: "~/.ssh/id_rsa"
+  tasks:
+    - name: Install sudo
+      ansible.builtin.apt:
+        name: sudo
+        state: present
+        update_cache: false
+      become: true
+      when: not (_bootstrap_user_ready | default(false) | bool)
+
+    - name: Create ansible user
+      ansible.builtin.user:
+        name: ansible
+        groups: sudo
+        append: true
+        shell: /bin/bash
+        create_home: true
+        password_lock: true
+      become: true
+      when: not (_bootstrap_user_ready | default(false) | bool)
+
+    - name: Deploy ansible SSH authorized key
+      ansible.posix.authorized_key:
+        user: ansible
+        key: "{{ pve_ansible_ssh_pub_key }}"
+        state: present
+        exclusive: true
+      become: true
+      when: not (_bootstrap_user_ready | default(false) | bool)
+
+    - name: Configure passwordless sudo for ansible
+      ansible.builtin.copy:
+        dest: /etc/sudoers.d/ansible
+        content: "ansible ALL=(ALL) NOPASSWD:ALL\n"
+        mode: "0440"
+        validate: visudo -cf %s
+      become: true
+      when: not (_bootstrap_user_ready | default(false) | bool)
+
+- name: Configure Proxmox nodes
+  hosts: proxmox_nodes
+  become: true
+  tasks:
+    - ansible.builtin.include_role:
+        name: pve_common
+    - ansible.builtin.include_role:
+        name: pve_security
+    - ansible.builtin.include_role:
+        name: pve_network
+    - ansible.builtin.include_role:
+        name: pve_storage
+    - ansible.builtin.include_role:
+        name: pve_iommu
+    - ansible.builtin.include_role:
+        name: pve_users
+    - ansible.builtin.include_role:
+        name: pve_notifications
+      when: pve_notifications_enabled | default(true)
+    - ansible.builtin.include_role:
+        name: pve_monitoring
+    - ansible.builtin.include_role:
+        name: pve_backups
+
+- name: Cleanup ansible SSH key
+  hosts: proxmox_nodes
+  gather_facts: false
+  run_once: true
+  tasks:
+    - name: Remove temp private key
+      ansible.builtin.file:
+        path: /tmp/ansible_pve_key
+        state: absent
+      delegate_to: localhost
+      changed_when: false
