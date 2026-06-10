@@ -1,0 +1,36 @@
+# Copy to terraform.tfvars and fill in. terraform.tfvars is gitignored.
+
+proxmox_endpoint  = "https://REDACTED_PVE_IP:8006/"
+proxmox_api_token = "terraform@pve!terraform-token=REPLACE-WITH-SECRET"
+proxmox_insecure  = true
+
+# The PVE node to place VMs on when nodes.pve_node is not set.
+default_pve_node = "pve01"
+
+# Map every PVE node name to its management IP. The bpg provider resolves node
+# names to SSH addresses here because they are not DNS-resolvable.
+pve_node_addresses = {
+  pve01 = "REDACTED_PVE_IP"
+  # pve02 = "192.168.0.70"
+}
+
+# SSH key for the 'ansible' user on every PVE node (snippet uploads).
+# Absolute path: terraform file() does not expand '~'.
+pve_ssh_username    = "ansible"
+pve_ssh_private_key = "/home/you/.ssh/ansible_k3s_pve"
+
+# Humans log in as 'ops' with a short-lived SSH CA cert (see ../ssh-ca/workload).
+ssh_principals = ["you"]
+
+# Break-glass only: standing key on 'ops' for when the CA is unreachable.
+break_glass_keys = [
+  "ssh-ed25519 AAAA... you@host",
+]
+
+# Defaults sized for a 16 GB host. Override here when the host grows.
+# Set pve_node on a node to pin it to a specific PVE host.
+# nodes = {
+#   k3s-cp-01     = { role = "server", pve_node = "pve01", cores = 2, memory = 6144, ip = "10.0.0.10/24" }
+#   k3s-worker-01 = { role = "agent",  pve_node = "pve01", cores = 3, memory = 8192, ip = "10.0.0.11/24", data_disk_gb = 200 }
+#   k3s-worker-02 = { role = "agent",  pve_node = "pve02", cores = 3, memory = 8192, ip = "10.0.0.12/24", data_disk_gb = 200 }
+# }

@@ -1,0 +1,37 @@
+#cloud-config
+hostname: ${hostname}
+preserve_hostname: false
+package_update: false
+package_upgrade: false
+
+users:
+  - name: ops
+    groups: [sudo]
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    shell: /bin/bash
+    ssh_authorized_keys: ${jsonencode(break_glass_keys)}
+
+write_files:
+  # image's sshd points TrustedUserCAKeys here; written at first boot so the image stays CA-agnostic.
+  - path: /etc/ssh/ca.pub
+    permissions: "0644"
+    owner: root:root
+    content: ${jsonencode(ssh_ca_public_key)}
+  # A cert is accepted only if one of its principals appears here.
+  - path: /etc/ssh/auth_principals/ops
+    permissions: "0644"
+    owner: root:root
+    content: ${jsonencode(join("\n", principals))}
+
+runcmd:
+  - ufw allow 10250/tcp comment 'kubelet metrics'
+  - ufw allow 8472/udp  comment 'Flannel VXLAN'
+  - ufw allow 51820/udp comment 'Flannel WireGuard'
+  - ufw allow 5001/tcp  comment 'k3s embedded registry'
+%{ if role == "server" ~}
+  - ufw allow 6443/tcp comment 'k3s API server'
+  - ufw allow 2379/tcp comment 'etcd client'
+  - ufw allow 2380/tcp comment 'etcd peer'
+%{ endif ~}
+  - ufw --force enable
+  - ${jsonencode(install_command)}
