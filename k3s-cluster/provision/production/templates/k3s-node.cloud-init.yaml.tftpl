@@ -25,6 +25,7 @@ write_files:
 
 runcmd:
   - ufw allow 10250/tcp comment 'kubelet metrics'
+  - ufw allow 9100/tcp  comment 'node-exporter'
   - ufw allow 8472/udp  comment 'Flannel VXLAN'
   - ufw allow 51820/udp comment 'Flannel WireGuard'
   - ufw allow 5001/tcp  comment 'k3s embedded registry'
