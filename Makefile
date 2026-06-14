@@ -13,20 +13,23 @@ INFRA_CA    = $(shell cat $(INFRA_CA_FILE) 2>/dev/null)
 
 PACKER_ARGS ?=
 
-.PHONY: help all images image-k3s image-docker k3s-plan k3s-apply k3s-destroy pve-init pve-bootstrap ssh-workload ssh-infra
+ANSIBLE_DIR := k3s-cluster/provision/ansible
+
+.PHONY: help all images image-k3s image-docker k3s-plan k3s-apply k3s-destroy k3s-disk-setup pve-init pve-bootstrap ssh-workload ssh-infra
 
 help:
-	@echo "all            pve-bootstrap, then images, then k3s-apply"
-	@echo "images         build all Packer templates"
-	@echo "image-k3s      build only the k3s template"
-	@echo "image-docker   build only the docker template"
-	@echo "k3s-plan       terraform plan"
-	@echo "k3s-apply      terraform apply"
-	@echo "k3s-destroy    terraform destroy"
-	@echo "pve-init       generate host secrets (ansible init.yml)"
-	@echo "pve-bootstrap  configure the host (ansible site.yml)"
-	@echo "ssh-workload   sign SSH cert for k3s nodes  (SSH_PRINCIPAL=$(USER))"
-	@echo "ssh-infra      sign SSH cert for PVE host   (SSH_PRINCIPAL=$(USER))"
+	@echo "all              pve-bootstrap, then images, then k3s-apply"
+	@echo "images           build all Packer templates"
+	@echo "image-k3s        build only the k3s template"
+	@echo "image-docker     build only the docker template"
+	@echo "k3s-plan         terraform plan"
+	@echo "k3s-apply        terraform apply"
+	@echo "k3s-destroy      terraform destroy"
+	@echo "k3s-disk-setup   format and mount data disks on k3s nodes"
+	@echo "pve-init         generate host secrets (ansible init.yml)"
+	@echo "pve-bootstrap    configure the host (ansible site.yml)"
+	@echo "ssh-workload     sign SSH cert for k3s nodes  (SSH_PRINCIPAL=$(USER))"
+	@echo "ssh-infra        sign SSH cert for PVE host   (SSH_PRINCIPAL=$(USER))"
 
 all: pve-bootstrap images k3s-apply
 
@@ -55,6 +58,9 @@ k3s-apply:
 k3s-destroy:
 	cd $(TF_DIR) && TF_VAR_ssh_ca_public_key='$(WORKLOAD_CA)' \
 		sops exec-file secrets.sops.yaml '$(SOPS_EXEC) {} TF_VAR_ terraform destroy'
+
+k3s-disk-setup:
+	cd $(ANSIBLE_DIR) && $(ANSIBLE) -i inventory.ini disk-setup.yml
 
 ssh-workload:
 	SOPS_AGE_KEY_FILE=$(SOPS_AGE_KEY_FILE) ssh-ca/sign.sh workload $(SSH_PRINCIPAL) 8h $(SSH_PUBKEY)
