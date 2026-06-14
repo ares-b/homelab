@@ -4,7 +4,6 @@ resources:
   - sealed-secrets
   - system-upgrade
   - local-path-data
-  - users
   - kube-prometheus-stack
   - loki
   - garage

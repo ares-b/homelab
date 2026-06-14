@@ -1,0 +1,125 @@
+---
+- name: Create k8s users
+  hosts: k3s-cp-01
+  become: true
+  tasks:
+    - name: Wait for k3s API
+      wait_for:
+        host: 127.0.0.1
+        port: 6443
+        timeout: 120
+
+    - name: Apply ares RBAC
+      shell: |
+        kubectl apply -f - <<'EOF'
+        apiVersion: v1
+        kind: ServiceAccount
+        metadata:
+          name: ares
+          namespace: kube-system
+        ---
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: ares-token
+          namespace: kube-system
+          annotations:
+            kubernetes.io/service-account.name: ares
+        type: kubernetes.io/service-account-token
+        ---
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: ClusterRoleBinding
+        metadata:
+          name: ares-cluster-admin
+        roleRef:
+          apiGroup: rbac.authorization.k8s.io
+          kind: ClusterRole
+          name: cluster-admin
+        subjects:
+          - kind: ServiceAccount
+            name: ares
+            namespace: kube-system
+        EOF
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+      changed_when: true
+
+    - name: Wait for token to be populated
+      shell: kubectl get secret ares-token -n kube-system -o jsonpath='{.data.token}'
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+      register: token_check
+      until: token_check.stdout != ""
+      retries: 10
+      delay: 3
+      changed_when: false
+
+    - name: Fetch CA cert
+      shell: kubectl get secret ares-token -n kube-system -o jsonpath='{.data.ca\.crt}'
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+      register: ca_data
+      changed_when: false
+
+    - name: Fetch token
+      shell: |
+        kubectl get secret ares-token -n kube-system -o jsonpath='{.data.token}' | base64 -d
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+      register: token_data
+      changed_when: false
+
+    - name: Set kubeconfig facts
+      set_fact:
+        k8s_ca: "{{ ca_data.stdout }}"
+        k8s_token: "{{ token_data.stdout }}"
+        k8s_server: "https://{{ ansible_host }}:6443"
+
+- name: Write local kubeconfig
+  hosts: k3s-cp-01
+  gather_facts: false
+  tasks:
+    - name: Ensure ~/.kube exists
+      delegate_to: localhost
+      become: false
+      file:
+        path: "{{ lookup('env', 'HOME') }}/.kube"
+        state: directory
+        mode: "0700"
+
+    - name: Write CA to temp file
+      delegate_to: localhost
+      become: false
+      shell: echo "{{ k8s_ca }}" | base64 -d > /tmp/homelab-ca.crt
+      changed_when: true
+
+    - name: Set cluster
+      delegate_to: localhost
+      become: false
+      command: >
+        kubectl config set-cluster homelab
+        --server={{ k8s_server }}
+        --certificate-authority=/tmp/homelab-ca.crt
+        --embed-certs=true
+
+    - name: Set credentials
+      delegate_to: localhost
+      become: false
+      command: kubectl config set-credentials ares --token={{ k8s_token }}
+
+    - name: Set context
+      delegate_to: localhost
+      become: false
+      command: kubectl config set-context homelab --cluster=homelab --user=ares
+
+    - name: Use context
+      delegate_to: localhost
+      become: false
+      command: kubectl config use-context homelab
+
+    - name: Remove temp CA file
+      delegate_to: localhost
+      become: false
+      file:
+        path: /tmp/homelab-ca.crt
+        state: absent

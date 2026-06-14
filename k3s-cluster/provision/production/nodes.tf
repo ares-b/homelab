@@ -148,12 +148,12 @@ resource "terraform_data" "disk_setup" {
   provisioner "local-exec" {
     command = <<-EOT
       INVENTORY="${abspath("${path.module}/../ansible/inventory.ini")}"
-      PLAYBOOK="${abspath("${path.module}/../ansible/disk-setup.yml")}"
       echo "Waiting for k3s nodes to be reachable..."
       until ansible k3s -i "$INVENTORY" -m ping --timeout=5 >/dev/null 2>&1; do
         sleep 15
       done
-      ansible-playbook -i "$INVENTORY" "$PLAYBOOK"
+      ansible-playbook -i "$INVENTORY" "${abspath("${path.module}/../ansible/disk-setup.yml")}"
+      ansible-playbook -i "$INVENTORY" "${abspath("${path.module}/../ansible/k8s-users.yml")}"
     EOT
   }
 }
