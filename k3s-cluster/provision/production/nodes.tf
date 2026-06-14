@@ -147,13 +147,15 @@ resource "terraform_data" "disk_setup" {
 
   provisioner "local-exec" {
     command = <<-EOT
-      INVENTORY="${abspath("${path.module}/../ansible/inventory.ini")}"
+      ANSIBLE_DIR="${abspath("${path.module}/../ansible")}"
+      INVENTORY="$ANSIBLE_DIR/inventory.ini"
+      ansible-galaxy collection install -r "$ANSIBLE_DIR/requirements.yml" --upgrade
       echo "Waiting for k3s nodes to be reachable..."
       until ansible k3s -i "$INVENTORY" -m ping --timeout=5 >/dev/null 2>&1; do
         sleep 15
       done
-      ansible-playbook -i "$INVENTORY" "${abspath("${path.module}/../ansible/disk-setup.yml")}"
-      ansible-playbook -i "$INVENTORY" "${abspath("${path.module}/../ansible/k8s-users.yml")}" \
+      ansible-playbook -i "$INVENTORY" "$ANSIBLE_DIR/disk-setup.yml"
+      ansible-playbook -i "$INVENTORY" "$ANSIBLE_DIR/k8s-users.yml" \
         -e 'k8s_users=${jsonencode(var.k8s_users)}'
     EOT
   }

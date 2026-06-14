@@ -1,7 +1,10 @@
 ---
-- name: Create k8s users
+- name: Reconcile k8s users
   hosts: k3s-cp-01
   become: true
+  vars:
+    kubeconfig_path: /etc/rancher/k3s/k3s.yaml
+    managed_label: "app.kubernetes.io/managed-by=terraform"
   tasks:
     - name: Wait for k3s API
       wait_for:
@@ -9,80 +12,166 @@
         port: 6443
         timeout: 120
 
-    - name: Apply user RBAC
-      shell: |
-        kubectl apply -f - <<'EOF'
-        apiVersion: v1
+    - name: Ensure kubernetes Python package is installed
+      pip:
+        name: kubernetes
+        state: present
+
+    - name: Get existing managed ServiceAccounts
+      kubernetes.core.k8s_info:
+        api_version: v1
         kind: ServiceAccount
-        metadata:
-          name: {{ item.key }}
-          namespace: kube-system
-        ---
-        apiVersion: v1
+        namespace: kube-system
+        label_selectors: ["{{ managed_label }}"]
+        kubeconfig: "{{ kubeconfig_path }}"
+      register: existing_sas
+
+    - name: Set removed users list
+      set_fact:
+        removed_users: >-
+          {{
+            existing_sas.resources
+            | map(attribute='metadata.name')
+            | list
+            | difference(k8s_users.keys() | list)
+          }}
+
+    - name: Delete removed ServiceAccounts
+      kubernetes.core.k8s:
+        state: absent
+        api_version: v1
+        kind: ServiceAccount
+        name: "{{ item }}"
+        namespace: kube-system
+        kubeconfig: "{{ kubeconfig_path }}"
+      loop: "{{ removed_users }}"
+
+    - name: Delete removed token Secrets
+      kubernetes.core.k8s:
+        state: absent
+        api_version: v1
         kind: Secret
-        metadata:
-          name: {{ item.key }}-token
-          namespace: kube-system
-          annotations:
-            kubernetes.io/service-account.name: {{ item.key }}
-        type: kubernetes.io/service-account-token
-        ---
-        apiVersion: rbac.authorization.k8s.io/v1
+        name: "{{ item }}-token"
+        namespace: kube-system
+        kubeconfig: "{{ kubeconfig_path }}"
+      loop: "{{ removed_users }}"
+
+    - name: Delete removed ClusterRoleBindings
+      kubernetes.core.k8s:
+        state: absent
+        api_version: rbac.authorization.k8s.io/v1
         kind: ClusterRoleBinding
-        metadata:
-          name: {{ item.key }}-{{ item.value.cluster_role }}
-        roleRef:
-          apiGroup: rbac.authorization.k8s.io
-          kind: ClusterRole
-          name: {{ item.value.cluster_role }}
-        subjects:
-          - kind: ServiceAccount
-            name: {{ item.key }}
+        name: "{{ item }}-binding"
+        kubeconfig: "{{ kubeconfig_path }}"
+      loop: "{{ removed_users }}"
+
+    - name: Apply ServiceAccounts
+      kubernetes.core.k8s:
+        state: present
+        kubeconfig: "{{ kubeconfig_path }}"
+        definition:
+          apiVersion: v1
+          kind: ServiceAccount
+          metadata:
+            name: "{{ item.key }}"
             namespace: kube-system
-        EOF
-      environment:
-        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+            labels:
+              app.kubernetes.io/managed-by: terraform
       loop: "{{ k8s_users | dict2items }}"
-      changed_when: true
+
+    - name: Apply token Secrets
+      kubernetes.core.k8s:
+        state: present
+        kubeconfig: "{{ kubeconfig_path }}"
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: "{{ item.key }}-token"
+            namespace: kube-system
+            labels:
+              app.kubernetes.io/managed-by: terraform
+            annotations:
+              kubernetes.io/service-account.name: "{{ item.key }}"
+          type: kubernetes.io/service-account-token
+      loop: "{{ k8s_users | dict2items }}"
+
+    - name: Get existing managed ClusterRoleBindings
+      kubernetes.core.k8s_info:
+        api_version: rbac.authorization.k8s.io/v1
+        kind: ClusterRoleBinding
+        label_selectors: ["{{ managed_label }}"]
+        kubeconfig: "{{ kubeconfig_path }}"
+      register: existing_crbs
+
+    - name: Delete ClusterRoleBinding if cluster_role changed (roleRef is immutable)
+      kubernetes.core.k8s:
+        state: absent
+        api_version: rbac.authorization.k8s.io/v1
+        kind: ClusterRoleBinding
+        name: "{{ item.key }}-binding"
+        kubeconfig: "{{ kubeconfig_path }}"
+      when: >-
+        (existing_crbs.resources
+          | selectattr('metadata.name', 'equalto', item.key ~ '-binding')
+          | map(attribute='roleRef.name')
+          | list
+          | first
+          | default('')) != item.value.cluster_role
+      loop: "{{ k8s_users | dict2items }}"
+
+    - name: Apply ClusterRoleBindings
+      kubernetes.core.k8s:
+        state: present
+        kubeconfig: "{{ kubeconfig_path }}"
+        definition:
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: ClusterRoleBinding
+          metadata:
+            name: "{{ item.key }}-binding"
+            labels:
+              app.kubernetes.io/managed-by: terraform
+          roleRef:
+            apiGroup: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: "{{ item.value.cluster_role }}"
+          subjects:
+            - kind: ServiceAccount
+              name: "{{ item.key }}"
+              namespace: kube-system
+      loop: "{{ k8s_users | dict2items }}"
 
     - name: Wait for tokens to be populated
-      shell: |
-        kubectl get secret {{ item.key }}-token -n kube-system -o jsonpath='{.data.token}'
-      environment:
-        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-      register: token_checks
-      until: token_checks.stdout != ""
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Secret
+        name: "{{ item.key }}-token"
+        namespace: kube-system
+        kubeconfig: "{{ kubeconfig_path }}"
+      register: token_secrets
+      until: >-
+        token_secrets.resources | length > 0 and
+        (token_secrets.resources[0].data | default({})).token is defined
       retries: 10
       delay: 3
       loop: "{{ k8s_users | dict2items }}"
-      changed_when: false
 
-    - name: Fetch user credentials
-      shell: |
-        echo "ca=$(kubectl get secret {{ item.key }}-token -n kube-system -o jsonpath='{.data.ca\.crt}')"
-        echo "token=$(kubectl get secret {{ item.key }}-token -n kube-system -o jsonpath='{.data.token}' | base64 -d)"
-      environment:
-        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-      register: user_creds
-      loop: "{{ k8s_users | dict2items }}"
-      changed_when: false
-
-    - name: Set credentials facts
+    - name: Build credentials facts
       set_fact:
         k8s_credentials: >-
           {{
             k8s_credentials | default({}) | combine({
               item.item.key: {
-                'ca': (item.stdout_lines | select('match', '^ca=') | first)[3:],
-                'token': (item.stdout_lines | select('match', '^token=') | first)[6:],
+                'ca': item.resources[0].data['ca.crt'],
+                'token': item.resources[0].data.token | b64decode,
                 'server': 'https://' + ansible_host + ':6443',
                 'kubeconfig': item.item.value.kubeconfig
               }
             })
           }}
-      loop: "{{ user_creds.results }}"
+      loop: "{{ token_secrets.results }}"
 
-- name: Write kubeconfigs
+- name: Write local kubeconfigs
   hosts: k3s-cp-01
   gather_facts: false
   tasks:
@@ -94,37 +183,36 @@
         state: directory
         mode: "0700"
 
-    - name: Configure kubeconfig for each user
-      when: cred.value.kubeconfig
-      vars:
-        cred: "{{ item }}"
+    - name: Configure kubeconfig for users with kubeconfig=true
+      when: item.value.kubeconfig
       delegate_to: localhost
       become: false
       block:
         - name: Write CA to temp file
-          shell: echo "{{ cred.value.ca }}" | base64 -d > /tmp/{{ cred.key }}-ca.crt
+          shell: echo "{{ item.value.ca }}" | base64 -d > /tmp/{{ item.key }}-ca.crt
           changed_when: true
 
         - name: Set cluster
           command: >
             kubectl config set-cluster homelab
-            --server={{ cred.value.server }}
-            --certificate-authority=/tmp/{{ cred.key }}-ca.crt
+            --server={{ item.value.server }}
+            --certificate-authority=/tmp/{{ item.key }}-ca.crt
             --embed-certs=true
 
         - name: Set credentials
-          command: kubectl config set-credentials {{ cred.key }} --token={{ cred.value.token }}
+          command: kubectl config set-credentials {{ item.key }} --token={{ item.value.token }}
 
         - name: Set context
-          command: kubectl config set-context homelab --cluster=homelab --user={{ cred.key }}
+          command: >
+            kubectl config set-context homelab
+            --cluster=homelab
+            --user={{ item.key }}
 
         - name: Use context
           command: kubectl config use-context homelab
 
         - name: Remove temp CA file
           file:
-            path: /tmp/{{ cred.key }}-ca.crt
+            path: /tmp/{{ item.key }}-ca.crt
             state: absent
       loop: "{{ k8s_credentials | dict2items }}"
-      loop_control:
-        loop_var: item
