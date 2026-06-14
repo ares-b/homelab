@@ -1,0 +1,50 @@
+---
+- name: Format and mount data disk
+  hosts: k3s
+  become: true
+  tasks:
+    - name: Check data disk exists
+      stat:
+        path: /dev/sdb
+      register: data_disk
+
+    - name: Fail if data disk missing
+      fail:
+        msg: "/dev/sdb not found on {{ inventory_hostname }}"
+      when: not data_disk.stat.exists
+
+    - name: Check if disk already has filesystem
+      command: blkid /dev/sdb
+      register: blkid_result
+      changed_when: false
+      failed_when: false
+
+    - name: Format disk ext4 with label k3s-data
+      command: mkfs.ext4 -L k3s-data /dev/sdb
+      when: blkid_result.rc != 0
+
+    - name: Create mount point
+      file:
+        path: /var/lib/k3s-data
+        state: directory
+        mode: "0755"
+
+    - name: Add fstab entry
+      lineinfile:
+        path: /etc/fstab
+        line: "LABEL=k3s-data /var/lib/k3s-data ext4 defaults,nofail 0 2"
+        regexp: "LABEL=k3s-data"
+
+    - name: Check if already mounted
+      command: mountpoint -q /var/lib/k3s-data
+      register: mount_check
+      changed_when: false
+      failed_when: false
+
+    - name: Mount disk
+      command: mount /var/lib/k3s-data
+      when: mount_check.rc != 0
+
+    - name: Verify mount succeeded
+      command: mountpoint -q /var/lib/k3s-data
+      changed_when: false

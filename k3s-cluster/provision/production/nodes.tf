@@ -53,6 +53,7 @@ resource "proxmox_virtual_environment_file" "user_data" {
       principals        = var.ssh_principals
       break_glass_keys  = var.break_glass_keys
       install_command   = local.install_command[each.key]
+      data_disk_gb      = each.value.data_disk_gb
     })
   }
 }

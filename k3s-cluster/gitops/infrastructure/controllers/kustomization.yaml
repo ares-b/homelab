@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - sealed-secrets
   - system-upgrade
+  - local-path-data
   - kube-prometheus-stack
   - loki
   - garage

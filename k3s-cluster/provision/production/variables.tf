@@ -55,7 +55,7 @@ variable "datastore_id" {
 
 variable "data_datastore_id" {
   type        = string
-  default     = "sda-data"
+  default     = "local-lvm"
   description = "Datastore for optional per-node data disks."
 }
 
@@ -112,7 +112,7 @@ variable "root_disk_gb" {
 
 variable "k3s_version" {
   type        = string
-  default     = "v1.31.5+k3s1"
+  default     = "v1.35.5+k3s1"
   description = "Pinned k3s version (INSTALL_K3S_VERSION) for reproducible installs."
 }
 
@@ -128,22 +128,25 @@ variable "nodes" {
   description = "Cluster nodes. Exactly one must have role 'server'. ip is CIDR; memory is MB. pve_node defaults to default_pve_node when omitted."
   default = {
     k3s-cp-01 = {
-      role   = "server"
-      cores  = 2
-      memory = 4096
-      ip     = "10.0.0.10/24"
+      role         = "server"
+      cores        = 2
+      memory       = 4096
+      ip           = "10.0.0.10/24"
+      data_disk_gb = 500
     }
     k3s-worker-01 = {
-      role   = "agent"
-      cores  = 2
-      memory = 4096
-      ip     = "10.0.0.11/24"
+      role         = "agent"
+      cores        = 2
+      memory       = 4096
+      ip           = "10.0.0.11/24"
+      data_disk_gb = 500
     }
     k3s-worker-02 = {
-      role   = "agent"
-      cores  = 2
-      memory = 4096
-      ip     = "10.0.0.12/24"
+      role         = "agent"
+      cores        = 2
+      memory       = 4096
+      ip           = "10.0.0.12/24"
+      data_disk_gb = 500
     }
   }
 
