@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: garage-config
+  namespace: garage
+data:
+  garage.toml: |
+    metadata_dir = "/var/lib/garage/meta"
+    data_dir     = "/var/lib/garage/data"
+
+    replication_factor = 2
+
+    rpc_secret    = "PLACEHOLDER_RPC_SECRET"
+    rpc_bind_addr = "0.0.0.0:3901"
+    rpc_public_addr = "PLACEHOLDER_POD_NAME.garage-headless.garage.svc.cluster.local:3901"
+
+    bootstrap_peers = [
+      "garage-0.garage-headless.garage.svc.cluster.local:3901",
+      "garage-1.garage-headless.garage.svc.cluster.local:3901",
+      "garage-2.garage-headless.garage.svc.cluster.local:3901",
+    ]
+
+    [s3_api]
+    api_bind_addr = "0.0.0.0:3900"
+    s3_region     = "garage"
+
+    [admin]
+    api_bind_addr = "0.0.0.0:3903"
+    admin_token   = "PLACEHOLDER_ADMIN_TOKEN"
