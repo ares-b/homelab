@@ -11,3 +11,4 @@ spec:
   path: ./k3s-cluster/gitops/infrastructure
   prune: true
   wait: true
+  timeout: 15m
