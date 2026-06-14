@@ -153,7 +153,8 @@ resource "terraform_data" "disk_setup" {
         sleep 15
       done
       ansible-playbook -i "$INVENTORY" "${abspath("${path.module}/../ansible/disk-setup.yml")}"
-      ansible-playbook -i "$INVENTORY" "${abspath("${path.module}/../ansible/k8s-users.yml")}"
+      ansible-playbook -i "$INVENTORY" "${abspath("${path.module}/../ansible/k8s-users.yml")}" \
+        -e 'k8s_users=${jsonencode(var.k8s_users)}'
     EOT
   }
 }

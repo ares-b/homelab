@@ -116,6 +116,20 @@ variable "k3s_version" {
   description = "Pinned k3s version (INSTALL_K3S_VERSION) for reproducible installs."
 }
 
+variable "k8s_users" {
+  type = map(object({
+    cluster_role = optional(string, "cluster-admin")
+    kubeconfig   = optional(bool, false)
+  }))
+  default = {
+    ares = {
+      cluster_role = "cluster-admin"
+      kubeconfig   = true
+    }
+  }
+  description = "Kubernetes users to create. Key is the username. kubeconfig=true writes ~/.kube/config on the operator machine."
+}
+
 variable "nodes" {
   type = map(object({
     role         = string
