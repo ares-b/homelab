@@ -127,3 +127,33 @@ resource "proxmox_virtual_environment_vm" "k3s" {
     ignore_changes = [clone]
   }
 }
+
+resource "local_file" "ansible_inventory" {
+  filename = "${path.module}/../ansible/inventory.ini"
+  content = templatefile("${path.module}/templates/inventory.ini.tftpl", {
+    nodes = local.resolved_nodes
+  })
+}
+
+resource "terraform_data" "disk_setup" {
+  triggers_replace = {
+    vm_ids = jsonencode([for name, vm in proxmox_virtual_environment_vm.k3s : vm.id])
+  }
+
+  depends_on = [
+    proxmox_virtual_environment_vm.k3s,
+    local_file.ansible_inventory,
+  ]
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      INVENTORY="${abspath("${path.module}/../ansible/inventory.ini")}"
+      PLAYBOOK="${abspath("${path.module}/../ansible/disk-setup.yml")}"
+      echo "Waiting for k3s nodes to be reachable..."
+      until ansible k3s -i "$INVENTORY" -m ping --timeout=5 >/dev/null 2>&1; do
+        sleep 15
+      done
+      ansible-playbook -i "$INVENTORY" "$PLAYBOOK"
+    EOT
+  }
+}

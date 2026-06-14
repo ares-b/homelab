@@ -21,6 +21,9 @@ tfplan
 # Fetched kubeconfig
 k3s-cluster/k3s.yaml
 
+# Terraform-generated files
+k3s-cluster/provision/ansible/inventory.ini
+
 # Tooling
 .venv/
 __pycache__/
