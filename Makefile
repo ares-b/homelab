@@ -1,7 +1,7 @@
 # ssh_ca_public_key has no default — injected from ssh-ca/*/ca.pub so it can't silently drift.
 WORKLOAD_CA_FILE := ssh-ca/workload/ca.pub
 INFRA_CA_FILE    := ssh-ca/infra/ca.pub
-TF_DIR           := k3s-cluster
+TF_DIR           := k3s-cluster/provision/production
 ANSIBLE          ?= ansible-playbook
 SOPS_EXEC        := python3 $(CURDIR)/scripts/sops-exec.py
 
