@@ -7,10 +7,10 @@ metadata:
     kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   accessModes: [ReadWriteOnce]
-  storageClassName: local-path-data
+  storageClassName: local-path-nvme
   resources:
     requests:
-      storage: 30Gi
+      storage: 50Gi
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -21,10 +21,10 @@ metadata:
     kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   accessModes: [ReadWriteOnce]
-  storageClassName: local-path-data
+  storageClassName: local-path-nvme
   resources:
     requests:
-      storage: 5Gi
+      storage: 10Gi
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -35,7 +35,7 @@ metadata:
     kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   accessModes: [ReadWriteOnce]
-  storageClassName: local-path-data
+  storageClassName: local-path-nvme
   resources:
     requests:
       storage: 10Gi

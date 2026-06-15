@@ -39,7 +39,7 @@ spec:
         passwordKey: admin-password
       persistence:
         enabled: true
-        storageClassName: local-path-data
+        storageClassName: local-path-nvme
         size: 10Gi
       grafana.ini:
         analytics:
@@ -84,10 +84,10 @@ spec:
           volumeClaimTemplate:
             spec:
               accessModes: ["ReadWriteOnce"]
-              storageClassName: local-path-data
+              storageClassName: local-path-nvme
               resources:
                 requests:
-                  storage: 30Gi
+                  storage: 50Gi
 
     alertmanager:
       alertmanagerSpec:
@@ -102,7 +102,7 @@ spec:
           volumeClaimTemplate:
             spec:
               accessModes: ["ReadWriteOnce"]
-              storageClassName: local-path-data
+              storageClassName: local-path-nvme
               resources:
                 requests:
-                  storage: 5Gi
+                  storage: 10Gi

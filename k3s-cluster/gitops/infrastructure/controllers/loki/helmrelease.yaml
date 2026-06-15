@@ -56,8 +56,8 @@ spec:
           memory: 1Gi
       persistence:
         enabled: true
-        storageClassName: local-path-data
-        size: 30Gi
+        storageClassName: local-path-nvme
+        size: 50Gi
 
     monitoring:
       serviceMonitor:

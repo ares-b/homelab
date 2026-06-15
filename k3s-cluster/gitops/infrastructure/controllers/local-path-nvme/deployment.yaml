@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: local-path-data-provisioner
-  namespace: local-path-data
+  name: local-path-nvme-provisioner
+  namespace: local-path-nvme
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: local-path-data-provisioner
+      app: local-path-nvme-provisioner
   template:
     metadata:
       labels:
-        app: local-path-data-provisioner
+        app: local-path-nvme-provisioner
     spec:
-      serviceAccountName: local-path-data-service-account
+      serviceAccountName: local-path-nvme-service-account
       containers:
-        - name: local-path-data-provisioner
+        - name: local-path-nvme-provisioner
           image: rancher/local-path-provisioner:v0.0.36
           imagePullPolicy: IfNotPresent
           command:
@@ -24,7 +24,7 @@ spec:
             - --config
             - /etc/config/config.json
             - --provisioner-name
-            - rancher.io/local-path-data
+            - rancher.io/local-path-nvme
           env:
             - name: POD_NAMESPACE
               valueFrom:
@@ -52,6 +52,6 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: local-path-data-config
+            name: local-path-nvme-config
         - name: tmp
           emptyDir: {}

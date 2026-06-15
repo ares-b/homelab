@@ -1,15 +1,15 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: local-path-data-config
-  namespace: local-path-data
+  name: local-path-nvme-config
+  namespace: local-path-nvme
 data:
   config.json: |
     {
       "nodePathMap": [
         {
           "node": "DEFAULT_PATH_FOR_NON_LISTED_NODES",
-          "paths": ["/var/lib/k3s-data"]
+          "paths": ["/var/lib/k3s-nvme"]
         }
       ]
     }

@@ -3,7 +3,8 @@ kind: Kustomization
 resources:
   - sealed-secrets
   - system-upgrade
-  - local-path-data
+  - local-path-nvme
+  - local-path-ssd
   - kube-prometheus-stack
   - loki
   - garage
