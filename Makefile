@@ -20,7 +20,7 @@ INFRA_CA    = $(shell cat $(INFRA_CA_FILE) 2>/dev/null)
 PACKER_ARGS ?=
 
 .PHONY: help images image-k3s image-docker k3s-plan k3s-apply k3s-destroy k3s-bootstrap \
-        k3s-kubeconfig k3s-kubeconfig-admin pve-init pve-bootstrap ssh-workload ssh-infra
+        k3s-kubeconfig k3s-kubeconfig-admin k3s-garage-layout pve-init pve-bootstrap ssh-workload ssh-infra
 
 help:
 	@echo "images               build all Packer templates"
@@ -29,7 +29,8 @@ help:
 	@echo "k3s-plan             terraform plan"
 	@echo "k3s-apply            terraform apply (provisions VMs, disks, k8s users, kubeconfig)"
 	@echo "k3s-destroy          terraform destroy"
-	@echo "k3s-bootstrap        flux bootstrap + restore sealed-secrets key (run after k3s-apply)"
+	@echo "k3s-bootstrap        flux bootstrap + sealed-secrets key + garage layout (run after k3s-apply)"
+	@echo "k3s-garage-layout    initialize garage cluster layout (idempotent)"
 	@echo "k3s-kubeconfig       write kubeconfig for K8S_USER (default: $(USER))"
 	@echo "k3s-kubeconfig-admin fetch raw admin kubeconfig (emergency use only)"
 	@echo "pve-init             generate host secrets (ansible init.yml)"
@@ -65,6 +66,21 @@ k3s-bootstrap: | $(WORKLOAD_CA_FILE)
 		| KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl apply -f -
 	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl rollout restart deployment/sealed-secrets-controller \
 		-n sealed-secrets
+	$(MAKE) k3s-garage-layout
+
+k3s-garage-layout:
+	@echo "Waiting for Garage StatefulSet..."
+	@until KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl get statefulset garage -n garage >/dev/null 2>&1; \
+		do sleep 15; done
+	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl rollout status statefulset/garage \
+		-n garage --timeout=15m
+	@TOKEN=$$(KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl get secret garage-admin -n garage \
+		-o jsonpath='{.data.admin-token}' | base64 -d) && \
+	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl run garage-layout-init -n garage \
+		--rm -i --restart=Never \
+		--image=python:3.13-alpine \
+		--env="GARAGE_ADMIN_TOKEN=$$TOKEN" \
+		-- python3 -u - < scripts/garage-layout-init.py
 
 k3s-plan k3s-apply k3s-destroy: | $(WORKLOAD_CA_FILE)
 

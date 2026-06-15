@@ -9,5 +9,4 @@ resources:
   - service-headless.yaml
   - service.yaml
   - statefulset.yaml
-  - job-layout-v1.yaml
   - ui

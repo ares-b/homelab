@@ -3,4 +3,6 @@ kind: Kustomization
 resources:
   - sealed-secrets
   - topolvm
+  - local-path-nvme
+  - local-path-ssd
   - system-upgrade
