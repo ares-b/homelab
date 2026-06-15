@@ -9,13 +9,17 @@ SOPS_AGE_KEY_FILE ?= $(HOME)/.config/sops/age/keys.txt
 CLUSTER_NAME      ?= homelab
 KUBECONFIG_ADMIN  ?= $(HOME)/.kube/$(CLUSTER_NAME)-admin.yaml
 K8S_USER          ?= $(USER)
+GITHUB_OWNER      ?= ares-b
+GITHUB_REPO       ?= homelab
+FLUX_PATH         ?= k3s-cluster/gitops/clusters/production
+SEALED_SECRETS_KEY ?= k3s-cluster/gitops/clusters/production/sealed-secrets/sealed-secrets-key.sops.yaml
 
 WORKLOAD_CA = $(shell cat $(WORKLOAD_CA_FILE) 2>/dev/null)
 INFRA_CA    = $(shell cat $(INFRA_CA_FILE) 2>/dev/null)
 
 PACKER_ARGS ?=
 
-.PHONY: help images image-k3s image-docker k3s-plan k3s-apply k3s-destroy \
+.PHONY: help images image-k3s image-docker k3s-plan k3s-apply k3s-destroy k3s-bootstrap \
         k3s-kubeconfig k3s-kubeconfig-admin pve-init pve-bootstrap ssh-workload ssh-infra
 
 help:
@@ -25,6 +29,7 @@ help:
 	@echo "k3s-plan             terraform plan"
 	@echo "k3s-apply            terraform apply (provisions VMs, disks, k8s users, kubeconfig)"
 	@echo "k3s-destroy          terraform destroy"
+	@echo "k3s-bootstrap        flux bootstrap + restore sealed-secrets key (run after k3s-apply)"
 	@echo "k3s-kubeconfig       write kubeconfig for K8S_USER (default: $(USER))"
 	@echo "k3s-kubeconfig-admin fetch raw admin kubeconfig (emergency use only)"
 	@echo "pve-init             generate host secrets (ansible init.yml)"
@@ -44,6 +49,22 @@ image-k3s:
 image-docker:
 	cd packer && sops exec-file secrets.sops.yaml '$(SOPS_EXEC) {} PKR_VAR_ ./deploy.sh -only="ubuntu-docker.proxmox-iso.ubuntu-docker" $(PACKER_ARGS)'
 
+
+k3s-bootstrap: | $(WORKLOAD_CA_FILE)
+	make k3s-kubeconfig-admin
+	flux bootstrap github \
+		--owner=$(GITHUB_OWNER) \
+		--repository=$(GITHUB_REPO) \
+		--path=$(FLUX_PATH) \
+		--personal
+	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl wait deployment sealed-secrets-controller \
+		-n sealed-secrets --for=condition=available --timeout=5m
+	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl delete secret -n sealed-secrets \
+		-l sealedsecrets.bitnami.com/sealed-secrets-key
+	SOPS_AGE_KEY_FILE=$(SOPS_AGE_KEY_FILE) sops -d $(SEALED_SECRETS_KEY) \
+		| KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl apply -f -
+	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl rollout restart deployment/sealed-secrets-controller \
+		-n sealed-secrets
 
 k3s-plan k3s-apply k3s-destroy: | $(WORKLOAD_CA_FILE)
 
