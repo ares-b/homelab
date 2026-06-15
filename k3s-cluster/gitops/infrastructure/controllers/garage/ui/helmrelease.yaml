@@ -6,6 +6,9 @@ metadata:
 spec:
   interval: 1h
   targetNamespace: garage
+  dependsOn:
+    - name: kube-prometheus-stack
+      namespace: flux-system
   install:
     remediation:
       retries: 3

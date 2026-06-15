@@ -6,6 +6,9 @@ metadata:
 spec:
   interval: 1h
   targetNamespace: monitoring
+  dependsOn:
+    - name: kube-prometheus-stack
+      namespace: flux-system
   install:
     createNamespace: true
     remediation:
