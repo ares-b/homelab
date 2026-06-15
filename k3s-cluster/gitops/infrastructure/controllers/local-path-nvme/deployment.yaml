@@ -13,7 +13,7 @@ spec:
       labels:
         app: local-path-nvme-provisioner
     spec:
-      serviceAccountName: local-path-nvme-service-account
+      serviceAccountName: local-path-provisioner-service-account
       containers:
         - name: local-path-nvme-provisioner
           image: rancher/local-path-provisioner:v0.0.36
