@@ -22,10 +22,8 @@ iso_exists() {
 packer init . >/dev/null
 
 if iso_exists; then
-  echo "ISO present on PVE (${ISO_FILE}); building both in parallel."
-  packer build "$@" .
+  packer build -parallel-builds=1 "$@" .
 else
-  echo "ISO not on PVE; downloading once and building sequentially."
+  echo "ISO not on PVE; downloading and uploading first."
   packer build -parallel-builds=1 -var "proxmox_iso_file=" "$@" .
-  echo "Bootstrap done. The ISO is now on PVE, so the next run builds in parallel."
 fi
