@@ -1,12 +1,10 @@
 locals {
-  # Resolve pve_node for every node, falling back to default_pve_node when not set.
   resolved_nodes = {
     for name, n in var.nodes : name => merge(n, {
       pve_node = coalesce(n.pve_node, var.default_pve_node)
     })
   }
 
-  # The single server's address is the join target for every agent.
   server_ip = split("/", one([for n in var.nodes : n.ip if n.role == "server"]))[0]
 
   install_command = {
@@ -16,6 +14,12 @@ locals {
       : "curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=${var.k3s_version} K3S_URL=https://${local.server_ip}:6443 K3S_TOKEN=${random_password.k3s_token.result} sh -s - agent --node-name ${name}"
     )
   }
+
+  disk_device_letters = ["b", "c", "d", "e", "f"]
+
+  ansible_dir = abspath("${path.module}/../ansible")
+  inventory   = "${local.ansible_dir}/inventory.ini"
+  vm_ids      = jsonencode([for name, vm in proxmox_virtual_environment_vm.k3s : vm.id])
 }
 
 # Fail fast if any node references a PVE node not declared in pve_node_addresses.
@@ -53,7 +57,6 @@ resource "proxmox_virtual_environment_file" "user_data" {
       principals        = var.ssh_principals
       break_glass_keys  = var.break_glass_keys
       install_command   = local.install_command[each.key]
-      data_disk_gb      = each.value.data_disk_gb
     })
   }
 }
@@ -90,11 +93,11 @@ resource "proxmox_virtual_environment_vm" "k3s" {
   }
 
   dynamic "disk" {
-    for_each = each.value.data_disk_gb > 0 ? [each.value.data_disk_gb] : []
+    for_each = { for i, d in each.value.data_disks : i => d }
     content {
-      datastore_id = var.data_datastore_id
-      interface    = "scsi1"
-      size         = disk.value
+      datastore_id = disk.value.datastore_id
+      interface    = "scsi${disk.key + 1}"
+      size         = disk.value.size_gb
     }
   }
 
@@ -135,28 +138,68 @@ resource "local_file" "ansible_inventory" {
   })
 }
 
-resource "terraform_data" "disk_setup" {
-  triggers_replace = {
-    vm_ids = jsonencode([for name, vm in proxmox_virtual_environment_vm.k3s : vm.id])
-  }
+resource "local_file" "host_vars" {
+  for_each = local.resolved_nodes
+
+  filename = "${path.module}/../ansible/host_vars/${each.key}.yml"
+  content = templatefile("${path.module}/templates/host-vars.yml.tftpl", {
+    data_disks = [
+      for i, disk in each.value.data_disks : merge(disk, {
+        device = "/dev/sd${local.disk_device_letters[i]}"
+        label  = "k3s-${disk.type}"
+        mount  = "/var/lib/k3s-${disk.type}"
+        fs     = "ext4"
+      })
+    ]
+  })
+}
+
+resource "terraform_data" "wait_for_nodes" {
+  triggers_replace = { vm_ids = local.vm_ids }
 
   depends_on = [
     proxmox_virtual_environment_vm.k3s,
     local_file.ansible_inventory,
+    local_file.host_vars,
   ]
 
   provisioner "local-exec" {
     command = <<-EOT
-      ANSIBLE_DIR="${abspath("${path.module}/../ansible")}"
-      INVENTORY="$ANSIBLE_DIR/inventory.ini"
-      ansible-galaxy collection install -r "$ANSIBLE_DIR/requirements.yml" --upgrade
+      ${join("\n      ", [for name, vm in proxmox_virtual_environment_vm.k3s : "ssh-keygen -R ${split("/", local.resolved_nodes[name].ip)[0]} 2>/dev/null || true"])}
       echo "Waiting for k3s nodes to be reachable..."
-      until ansible k3s -i "$INVENTORY" -m ping --timeout=5 >/dev/null 2>&1; do
+      until ansible k3s -i '${local.inventory}' -m ping --timeout=5 >/dev/null 2>&1; do
         sleep 15
       done
-      ansible-playbook -i "$INVENTORY" "$ANSIBLE_DIR/disk-setup.yml"
-      ansible-playbook -i "$INVENTORY" "$ANSIBLE_DIR/k8s-users.yml" \
-        -e 'k8s_users=${jsonencode(var.k8s_users)}'
     EOT
+  }
+}
+
+resource "terraform_data" "disk_setup" {
+  triggers_replace = { vm_ids = local.vm_ids }
+
+  depends_on = [terraform_data.wait_for_nodes]
+
+  provisioner "local-exec" {
+    command = "ansible-playbook -i '${local.inventory}' '${local.ansible_dir}/disk-setup.yml'"
+  }
+}
+
+resource "terraform_data" "k8s_nodes" {
+  triggers_replace = { vm_ids = local.vm_ids }
+
+  depends_on = [terraform_data.disk_setup]
+
+  provisioner "local-exec" {
+    command = "ansible-playbook -i '${local.inventory}' '${local.ansible_dir}/k8s-nodes.yml'"
+  }
+}
+
+resource "terraform_data" "k8s_users" {
+  triggers_replace = { vm_ids = local.vm_ids, k8s_users = jsonencode(var.k8s_users) }
+
+  depends_on = [terraform_data.k8s_nodes]
+
+  provisioner "local-exec" {
+    command = "ansible-playbook -i '${local.inventory}' '${local.ansible_dir}/k8s-users.yml' -e '{\"k8s_users\":${jsonencode(var.k8s_users)}}'"
   }
 }

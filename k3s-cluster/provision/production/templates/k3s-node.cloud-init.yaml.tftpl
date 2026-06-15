@@ -35,10 +35,4 @@ runcmd:
   - ufw allow 2380/tcp comment 'etcd peer'
 %{ endif ~}
   - ufw --force enable
-%{ if data_disk_gb > 0 ~}
-  - bash -c 'blkid /dev/sdb || mkfs.ext4 -L k3s-data /dev/sdb'
-  - mkdir -p /var/lib/k3s-data
-  - bash -c 'grep -q k3s-data /etc/fstab || echo "LABEL=k3s-data /var/lib/k3s-data ext4 defaults,nofail 0 2" >> /etc/fstab'
-  - mount -a
-%{ endif ~}
   - ${jsonencode(install_command)}

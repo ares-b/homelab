@@ -5,4 +5,4 @@ ${name} ansible_host=${split("/", node.ip)[0]}
 
 [k3s:vars]
 ansible_user=ops
-ansible_ssh_common_args=-o StrictHostKeyChecking=no
+ansible_ssh_common_args=-o StrictHostKeyChecking=accept-new

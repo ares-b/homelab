@@ -1,50 +1,48 @@
 ---
-- name: Format and mount data disk
+- name: Format and mount data disks
   hosts: k3s
   become: true
   tasks:
-    - name: Check data disk exists
+    - name: Skip host without data disks
+      meta: end_host
+      when: data_disks | default([]) | length == 0
+
+    - name: Check disks exist
       stat:
-        path: /dev/sdb
-      register: data_disk
+        path: "{{ item.device }}"
+      register: disk_stats
+      loop: "{{ data_disks }}"
 
-    - name: Fail if data disk missing
+    - name: Fail if disk missing
       fail:
-        msg: "/dev/sdb not found on {{ inventory_hostname }}"
-      when: not data_disk.stat.exists
+        msg: "{{ item.item.device }} not found on {{ inventory_hostname }}"
+      when: not item.stat.exists
+      loop: "{{ disk_stats.results }}"
 
-    - name: Check if disk already has filesystem
-      command: blkid /dev/sdb
-      register: blkid_result
+    - name: Check existing filesystems
+      command: blkid {{ item.device }}
+      register: blkid_results
       changed_when: false
       failed_when: false
+      loop: "{{ data_disks }}"
 
-    - name: Format disk ext4 with label k3s-data
-      command: mkfs.ext4 -L k3s-data /dev/sdb
-      when: blkid_result.rc != 0
+    - name: Format disks without filesystem
+      command: mkfs.{{ item.item.fs }} -L {{ item.item.label }} {{ item.item.device }}
+      when: item.rc != 0
+      loop: "{{ blkid_results.results }}"
 
-    - name: Create mount point
+    - name: Create mount points
       file:
-        path: /var/lib/k3s-data
+        path: "{{ item.mount }}"
         state: directory
         mode: "0755"
+      loop: "{{ data_disks }}"
 
-    - name: Add fstab entry
-      lineinfile:
-        path: /etc/fstab
-        line: "LABEL=k3s-data /var/lib/k3s-data ext4 defaults,nofail 0 2"
-        regexp: "LABEL=k3s-data"
-
-    - name: Check if already mounted
-      command: mountpoint -q /var/lib/k3s-data
-      register: mount_check
-      changed_when: false
-      failed_when: false
-
-    - name: Mount disk
-      command: mount /var/lib/k3s-data
-      when: mount_check.rc != 0
-
-    - name: Verify mount succeeded
-      command: mountpoint -q /var/lib/k3s-data
-      changed_when: false
+    - name: Mount disks
+      mount:
+        path: "{{ item.mount }}"
+        src: "LABEL={{ item.label }}"
+        fstype: "{{ item.fs }}"
+        opts: defaults,nofail
+        state: mounted
+      loop: "{{ data_disks }}"

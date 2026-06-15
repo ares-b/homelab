@@ -23,6 +23,7 @@ k3s-cluster/k3s.yaml
 
 # Terraform-generated files
 k3s-cluster/provision/ansible/inventory.ini
+k3s-cluster/provision/ansible/host_vars/
 
 # Tooling
 .venv/

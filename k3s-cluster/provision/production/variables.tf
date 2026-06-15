@@ -53,12 +53,6 @@ variable "datastore_id" {
   description = "Datastore for VM root disks and the cloud-init drive."
 }
 
-variable "data_datastore_id" {
-  type        = string
-  default     = "local-lvm"
-  description = "Datastore for optional per-node data disks."
-}
-
 variable "snippet_datastore_id" {
   type        = string
   default     = "sda-data"
@@ -119,48 +113,48 @@ variable "k3s_version" {
 variable "k8s_users" {
   type = map(object({
     cluster_role = optional(string, "cluster-admin")
-    kubeconfig   = optional(bool, false)
   }))
   default = {
-    ares = {
-      cluster_role = "cluster-admin"
-      kubeconfig   = true
-    }
+    ares = { cluster_role = "cluster-admin" }
   }
-  description = "Kubernetes users to create. Key is the username. kubeconfig=true writes ~/.kube/config on the operator machine."
+  description = "Kubernetes users to create via Ansible. Key is the username. Use 'make k3s-kubeconfig' to write ~/.kube/config."
 }
 
 variable "nodes" {
   type = map(object({
-    role         = string
-    pve_node     = optional(string)
-    cores        = number
-    memory       = number
-    ip           = string
-    data_disk_gb = optional(number, 0)
+    role       = string
+    pve_node   = optional(string)
+    cores      = number
+    memory     = number
+    ip         = string
+    data_disks = optional(list(object({
+      size_gb      = number
+      type         = string
+      datastore_id = string
+    })), [])
   }))
   description = "Cluster nodes. Exactly one must have role 'server'. ip is CIDR; memory is MB. pve_node defaults to default_pve_node when omitted."
   default = {
     k3s-cp-01 = {
-      role         = "server"
-      cores        = 2
-      memory       = 4096
-      ip           = "10.0.0.10/24"
-      data_disk_gb = 500
+      role  = "server"
+      cores = 2
+      memory = 4096
+      ip    = "10.0.0.10/24"
+      data_disks = [{ size_gb = 500, type = "nvme", datastore_id = "local-lvm" }]
     }
     k3s-worker-01 = {
-      role         = "agent"
-      cores        = 2
-      memory       = 4096
-      ip           = "10.0.0.11/24"
-      data_disk_gb = 500
+      role  = "agent"
+      cores = 2
+      memory = 4096
+      ip    = "10.0.0.11/24"
+      data_disks = [{ size_gb = 500, type = "nvme", datastore_id = "local-lvm" }]
     }
     k3s-worker-02 = {
-      role         = "agent"
-      cores        = 2
-      memory       = 4096
-      ip           = "10.0.0.12/24"
-      data_disk_gb = 500
+      role  = "agent"
+      cores = 2
+      memory = 4096
+      ip    = "10.0.0.12/24"
+      data_disks = [{ size_gb = 500, type = "nvme", datastore_id = "local-lvm" }]
     }
   }
 
