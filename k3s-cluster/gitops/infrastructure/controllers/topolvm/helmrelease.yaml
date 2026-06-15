@@ -37,7 +37,7 @@ spec:
 
     node:
       lvmdEmbedded: true
-      kubeletWorkDirectory: /var/lib/rancher/k3s/agent/kubelet
+      kubeletWorkDirectory: /var/lib/kubelet
 
     scheduler:
       enabled: false
