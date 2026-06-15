@@ -54,6 +54,6 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: local-path-ssd-config
+            name: local-path-config
         - name: tmp
           emptyDir: {}
