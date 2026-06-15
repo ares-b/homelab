@@ -62,6 +62,8 @@ spec:
 
     prometheus:
       prometheusSpec:
+        scrapeInterval: 30s
+        evaluationInterval: 30s
         retention: 30d
         walCompression: true
         serviceMonitorSelectorNilUsesHelmValues: false
