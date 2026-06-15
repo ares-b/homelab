@@ -16,12 +16,13 @@ INFRA_CA    = $(shell cat $(INFRA_CA_FILE) 2>/dev/null)
 PACKER_ARGS ?=
 
 .PHONY: help images image-k3s image-docker k3s-plan k3s-apply k3s-destroy \
-        k3s-kubeconfig k3s-kubeconfig-admin pve-init pve-bootstrap ssh-workload ssh-infra
+        k3s-disk-setup k3s-kubeconfig k3s-kubeconfig-admin pve-init pve-bootstrap ssh-workload ssh-infra
 
 help:
 	@echo "images               build all Packer templates"
 	@echo "image-k3s            build only the k3s template"
 	@echo "image-docker         build only the docker template"
+	@echo "k3s-disk-setup       convert data disks to LVM (run after scaling down workloads)"
 	@echo "k3s-plan             terraform plan"
 	@echo "k3s-apply            terraform apply (provisions VMs, disks, k8s users, kubeconfig)"
 	@echo "k3s-destroy          terraform destroy"
@@ -43,6 +44,9 @@ image-k3s:
 
 image-docker:
 	cd packer && sops exec-file secrets.sops.yaml '$(SOPS_EXEC) {} PKR_VAR_ ./deploy.sh -only="ubuntu-docker.proxmox-iso.ubuntu-docker" $(PACKER_ARGS)'
+
+k3s-disk-setup:
+	ansible-playbook -i '$(TF_DIR)/../ansible/inventory.ini' k3s-cluster/provision/ansible/disk-setup.yml
 
 k3s-plan k3s-apply k3s-destroy: | $(WORKLOAD_CA_FILE)
 
