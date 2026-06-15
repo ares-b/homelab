@@ -9,4 +9,5 @@ resources:
   - service-headless.yaml
   - service.yaml
   - statefulset.yaml
+  - servicemonitor.yaml
   - ui
