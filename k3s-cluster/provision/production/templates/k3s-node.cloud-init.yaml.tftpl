@@ -35,4 +35,5 @@ runcmd:
   - ufw allow 2380/tcp comment 'etcd peer'
 %{ endif ~}
   - ufw --force enable
+  - mkdir -p /var/lib/rancher/k3s/agent/kubelet/plugins_registry
   - ${jsonencode(install_command)}
