@@ -3,6 +3,8 @@ kind: Job
 metadata:
   name: garage-layout-v1
   namespace: garage
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: IfNotPresent
 spec:
   backoffLimit: 10
   activeDeadlineSeconds: 600
