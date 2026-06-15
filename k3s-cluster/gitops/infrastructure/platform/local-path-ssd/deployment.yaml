@@ -23,8 +23,6 @@ spec:
             - start
             - --config
             - /etc/config/config.json
-            - --helper-pod-file
-            - /etc/config/helperPod.yaml
             - --provisioner-name
             - rancher.io/local-path-ssd
           env:
@@ -54,6 +52,6 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: local-path-ssd-config
+            name: local-path-config
         - name: tmp
           emptyDir: {}

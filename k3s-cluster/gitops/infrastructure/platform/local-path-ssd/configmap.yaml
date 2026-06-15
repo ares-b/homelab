@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: local-path-ssd-config
+  name: local-path-config
   namespace: local-path-ssd
 data:
   config.json: |

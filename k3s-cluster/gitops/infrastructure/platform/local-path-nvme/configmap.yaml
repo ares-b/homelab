@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: local-path-nvme-config
+  name: local-path-config
   namespace: local-path-nvme
 data:
   config.json: |
