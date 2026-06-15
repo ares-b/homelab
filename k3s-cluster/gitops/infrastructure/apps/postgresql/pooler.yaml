@@ -1,0 +1,16 @@
+# Not active — add to kustomization.yaml when connection pooling is needed.
+apiVersion: postgresql.cnpg.io/v1
+kind: Pooler
+metadata:
+  name: postgresql-pooler
+  namespace: postgresql
+spec:
+  cluster:
+    name: postgresql
+  instances: 1
+  type: rw
+  pgbouncer:
+    poolMode: transaction
+    parameters:
+      max_client_conn: "100"
+      default_pool_size: "10"
