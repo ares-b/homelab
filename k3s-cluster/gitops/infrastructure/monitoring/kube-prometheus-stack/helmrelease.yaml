@@ -93,6 +93,8 @@ spec:
 
     alertmanager:
       alertmanagerSpec:
+        secrets:
+          - alertmanager-telegram
         resources:
           requests:
             cpu: 50m
@@ -108,3 +110,15 @@ spec:
               resources:
                 requests:
                   storage: 10Gi
+      config:
+        route:
+          receiver: telegram
+          group_wait: 30s
+          group_interval: 5m
+          repeat_interval: 12h
+        receivers:
+          - name: telegram
+            telegram_configs:
+              - bot_token_file: /etc/alertmanager/secrets/alertmanager-telegram/token
+                chat_id: 1299519936
+                send_resolved: true

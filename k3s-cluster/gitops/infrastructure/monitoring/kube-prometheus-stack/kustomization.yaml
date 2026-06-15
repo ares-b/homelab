@@ -4,5 +4,6 @@ resources:
   - namespace.yaml
   - helmrepository.yaml
   - sealed-grafana-admin.yaml
+  - sealed-alertmanager-telegram.yaml
   - pvc.yaml
   - helmrelease.yaml
