@@ -1,5 +1,5 @@
 ---
-- name: Format and mount data disks
+- name: Set up LVM on data disks
   hosts: k3s
   become: true
   tasks:
@@ -7,7 +7,13 @@
       meta: end_host
       when: data_disks | default([]) | length == 0
 
-    - name: Check disks exist
+    - name: Install lvm2
+      apt:
+        name: lvm2
+        state: present
+        update_cache: false
+
+    - name: Check disk devices exist
       stat:
         path: "{{ item.device }}"
       register: disk_stats
@@ -19,30 +25,27 @@
       when: not item.stat.exists
       loop: "{{ disk_stats.results }}"
 
-    - name: Check existing filesystems
-      command: blkid {{ item.device }}
-      register: blkid_results
+    - name: Check existing volume groups
+      command: vgs --noheadings -o vg_name
+      register: existing_vgs
       changed_when: false
       failed_when: false
-      loop: "{{ data_disks }}"
 
-    - name: Format disks without filesystem
-      command: mkfs.{{ item.item.fs }} -L {{ item.item.label }} {{ item.item.device }}
-      when: item.rc != 0
-      loop: "{{ blkid_results.results }}"
-
-    - name: Create mount points
-      file:
-        path: "{{ item.mount }}"
-        state: directory
-        mode: "0755"
+    - name: Unmount disk and remove fstab entry
+      shell: |
+        mount_point=$(lsblk -no MOUNTPOINT {{ item.device }} 2>/dev/null | tr -d ' ')
+        [ -n "$mount_point" ] && umount "{{ item.device }}" || true
+        sed -i '\|LABEL=k3s-{{ item.type }}|d' /etc/fstab
       loop: "{{ data_disks }}"
+      when: item.vg_name not in (existing_vgs.stdout_lines | map('trim') | list)
+      changed_when: false
 
-    - name: Mount disks
-      mount:
-        path: "{{ item.mount }}"
-        src: "LABEL={{ item.label }}"
-        fstype: "{{ item.fs }}"
-        opts: defaults,nofail
-        state: mounted
+    - name: Create LVM physical volume
+      command: pvcreate -ff -y {{ item.device }}
       loop: "{{ data_disks }}"
+      when: item.vg_name not in (existing_vgs.stdout_lines | map('trim') | list)
+
+    - name: Create LVM volume group
+      command: vgcreate {{ item.vg_name }} {{ item.device }}
+      loop: "{{ data_disks }}"
+      when: item.vg_name not in (existing_vgs.stdout_lines | map('trim') | list)

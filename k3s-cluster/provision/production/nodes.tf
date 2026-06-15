@@ -145,10 +145,8 @@ resource "local_file" "host_vars" {
   content = templatefile("${path.module}/templates/host-vars.yml.tftpl", {
     data_disks = [
       for i, disk in each.value.data_disks : merge(disk, {
-        device = "/dev/sd${local.disk_device_letters[i]}"
-        label  = "k3s-${disk.type}"
-        mount  = "/var/lib/k3s-${disk.type}"
-        fs     = "ext4"
+        device  = "/dev/sd${local.disk_device_letters[i]}"
+        vg_name = "${disk.type}-vg"
       })
     ]
   })

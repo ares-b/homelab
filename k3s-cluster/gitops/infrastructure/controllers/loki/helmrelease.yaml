@@ -59,7 +59,7 @@ spec:
           memory: 1Gi
       persistence:
         enabled: true
-        storageClassName: local-path-nvme
+        storageClassName: nvme
         size: 50Gi
 
     monitoring:

@@ -2,8 +2,6 @@ data_disks:
 %{ for disk in data_disks ~}
   - device: ${disk.device}
     type: ${disk.type}
-    label: ${disk.label}
-    mount: ${disk.mount}
-    fs: ${disk.fs}
+    vg_name: ${disk.vg_name}
     size_gb: ${disk.size_gb}
 %{ endfor ~}

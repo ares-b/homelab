@@ -1,0 +1,45 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: topolvm
+  namespace: flux-system
+spec:
+  interval: 1h
+  targetNamespace: topolvm-system
+  install:
+    crds: CreateReplace
+    createNamespace: false
+    remediation:
+      retries: 3
+  upgrade:
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  chart:
+    spec:
+      chart: topolvm
+      version: "16.1.1"
+      sourceRef:
+        kind: HelmRepository
+        name: topolvm
+        namespace: flux-system
+  values:
+    lvmd:
+      deviceClasses:
+        - name: nvme
+          volume-group: nvme-vg
+          default: false
+          spare-gb: 10
+        - name: ssd
+          volume-group: ssd-vg
+          default: false
+          spare-gb: 10
+
+    node:
+      lvmdEmbedded: true
+      kubeletWorkDirectory: /var/lib/rancher/k3s/agent/kubelet
+
+    scheduler:
+      enabled: false
+
+    storageClasses: []

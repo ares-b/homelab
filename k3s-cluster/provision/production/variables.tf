@@ -136,25 +136,34 @@ variable "nodes" {
   description = "Cluster nodes. Exactly one must have role 'server'. ip is CIDR; memory is MB. pve_node defaults to default_pve_node when omitted."
   default = {
     k3s-cp-01 = {
-      role  = "server"
-      cores = 2
+      role   = "server"
+      cores  = 2
       memory = 4096
-      ip    = "10.0.0.10/24"
-      data_disks = [{ size_gb = 500, type = "nvme", datastore_id = "local-lvm" }]
+      ip     = "10.0.0.10/24"
+      data_disks = [
+        { size_gb = 300, type = "nvme", datastore_id = "local-lvm" },
+        { size_gb = 500, type = "ssd",  datastore_id = "sda-data"  },
+      ]
     }
     k3s-worker-01 = {
-      role  = "agent"
-      cores = 2
+      role   = "agent"
+      cores  = 2
       memory = 4096
-      ip    = "10.0.0.11/24"
-      data_disks = [{ size_gb = 500, type = "nvme", datastore_id = "local-lvm" }]
+      ip     = "10.0.0.11/24"
+      data_disks = [
+        { size_gb = 300, type = "nvme", datastore_id = "local-lvm" },
+        { size_gb = 500, type = "ssd",  datastore_id = "sda-data"  },
+      ]
     }
     k3s-worker-02 = {
-      role  = "agent"
-      cores = 2
+      role   = "agent"
+      cores  = 2
       memory = 4096
-      ip    = "10.0.0.12/24"
-      data_disks = [{ size_gb = 500, type = "nvme", datastore_id = "local-lvm" }]
+      ip     = "10.0.0.12/24"
+      data_disks = [
+        { size_gb = 300, type = "nvme", datastore_id = "local-lvm" },
+        { size_gb = 500, type = "ssd",  datastore_id = "sda-data"  },
+      ]
     }
   }
 

@@ -121,7 +121,7 @@ spec:
         name: meta
       spec:
         accessModes: [ReadWriteOnce]
-        storageClassName: local-path-ssd
+        storageClassName: ssd
         resources:
           requests:
             storage: 1Gi
@@ -129,7 +129,7 @@ spec:
         name: data
       spec:
         accessModes: [ReadWriteOnce]
-        storageClassName: local-path-ssd
+        storageClassName: ssd
         resources:
           requests:
             storage: 250Gi
