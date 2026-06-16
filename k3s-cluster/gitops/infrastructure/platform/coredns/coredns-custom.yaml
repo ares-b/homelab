@@ -4,10 +4,13 @@ metadata:
   name: coredns-custom
   namespace: kube-system
 data:
-  int.edgedatalab.override: |
-    hosts {
-      10.43.138.80 auth.int.edgedatalab.com
-      10.43.138.80 garage.int.edgedatalab.com
-      10.43.138.80 grafana.int.edgedatalab.com
-      fallthrough
+  int.edgedatalab.server: |
+    int.edgedatalab.com:53 {
+      hosts {
+        10.43.138.80 auth.int.edgedatalab.com
+        10.43.138.80 garage.int.edgedatalab.com
+        10.43.138.80 grafana.int.edgedatalab.com
+        fallthrough
+      }
+      forward . /etc/resolv.conf
     }
