@@ -132,6 +132,7 @@ ssh-infra:
 	SOPS_AGE_KEY_FILE=$(SOPS_AGE_KEY_FILE) ssh-ca/sign.sh infra $(SSH_PRINCIPAL) 1h $(SSH_PUBKEY)
 
 k3s-drain:
+	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl delete pdb --all --all-namespaces --ignore-not-found
 	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl drain k3s-worker-01 --ignore-daemonsets --delete-emptydir-data --timeout=120s
 	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl drain k3s-worker-02 --ignore-daemonsets --delete-emptydir-data --timeout=120s
 
