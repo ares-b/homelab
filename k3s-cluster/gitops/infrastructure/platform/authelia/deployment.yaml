@@ -28,7 +28,7 @@ spec:
             - name: http
               containerPort: 9091
           env:
-            - name: AUTHELIA_JWT_SECRET_FILE
+            - name: AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE
               value: /secrets/JWT_SECRET
             - name: AUTHELIA_SESSION_SECRET_FILE
               value: /secrets/SESSION_SECRET
