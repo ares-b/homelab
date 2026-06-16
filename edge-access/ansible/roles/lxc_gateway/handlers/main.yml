@@ -1,0 +1,9 @@
+---
+- name: Restart wg0
+  ansible.builtin.systemd:
+    name: wg-quick@wg0
+    state: restarted
+
+- name: Save iptables
+  ansible.builtin.command: netfilter-persistent save
+  changed_when: true

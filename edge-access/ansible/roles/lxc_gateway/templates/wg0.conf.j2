@@ -1,0 +1,11 @@
+[Interface]
+Address = {{ wireguard.lxc_ip }}/24
+PrivateKey = {{ _private_key }}
+
+[Peer]
+# VPS WireGuard server
+PublicKey = {{ _vps_pubkey }}
+PresharedKey = {{ wireguard.psk_lxc }}
+Endpoint = {{ vps.public_ip }}:{{ wireguard.port }}
+AllowedIPs = {{ wireguard.network }}
+PersistentKeepalive = 25

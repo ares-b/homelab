@@ -1,0 +1,92 @@
+---
+- name: LXC Gateway | Forwarding | Enable IP forwarding
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    state: present
+    sysctl_set: true
+    reload: true
+    sysctl_file: /etc/sysctl.d/99-edge-forward.conf
+
+- name: LXC Gateway | Forwarding | Remove old permissive wg0→eth0 FORWARD rule
+  ansible.builtin.iptables:
+    chain: FORWARD
+    in_interface: wg0
+    out_interface: eth0
+    jump: ACCEPT
+    comment: "edge-access fwd wg0->eth0"
+    state: absent
+  notify: Save iptables
+
+- name: LXC Gateway | Forwarding | Remove explicit DROP wg0→eth0 (replaced by default policy)
+  ansible.builtin.iptables:
+    chain: FORWARD
+    in_interface: wg0
+    out_interface: eth0
+    jump: DROP
+    comment: "edge-access fwd wg0->eth0 default drop"
+    state: absent
+  notify: Save iptables
+
+- name: LXC Gateway | Forwarding | Allow forward wg0→eth0 port 80
+  ansible.builtin.iptables:
+    chain: FORWARD
+    in_interface: wg0
+    out_interface: eth0
+    protocol: tcp
+    destination_port: "80"
+    jump: ACCEPT
+    comment: "edge-access fwd wg0->eth0 http"
+  notify: Save iptables
+
+- name: LXC Gateway | Forwarding | Allow forward wg0→eth0 port 443
+  ansible.builtin.iptables:
+    chain: FORWARD
+    in_interface: wg0
+    out_interface: eth0
+    protocol: tcp
+    destination_port: "443"
+    jump: ACCEPT
+    comment: "edge-access fwd wg0->eth0 https"
+  notify: Save iptables
+
+- name: LXC Gateway | Forwarding | Allow wg0→eth0 to routed subnets
+  ansible.builtin.iptables:
+    chain: FORWARD
+    in_interface: wg0
+    out_interface: eth0
+    source: "{{ wireguard.network }}"
+    destination: "{{ item }}"
+    jump: ACCEPT
+    comment: "edge-access fwd wg0->eth0 routed {{ item }}"
+  loop: "{{ wireguard.routed_subnets | default([]) }}"
+  notify: Save iptables
+
+- name: LXC Gateway | Forwarding | Allow established return traffic eth0→wg0
+  ansible.builtin.iptables:
+    chain: FORWARD
+    in_interface: eth0
+    out_interface: wg0
+    ctstate:
+      - ESTABLISHED
+      - RELATED
+    jump: ACCEPT
+    comment: "edge-access fwd eth0->wg0 established"
+  notify: Save iptables
+
+- name: LXC Gateway | Forwarding | DNAT round-robin to k3s ingress nodes
+  ansible.builtin.include_tasks: dnat_rr.yml
+  loop:
+    - "{{ k3s.ingress_http_port }}"
+    - "{{ k3s.ingress_https_port }}"
+  loop_control:
+    loop_var: _port
+
+- name: LXC Gateway | Forwarding | MASQUERADE outbound to k3s
+  ansible.builtin.iptables:
+    table: nat
+    chain: POSTROUTING
+    out_interface: eth0
+    jump: MASQUERADE
+    comment: "edge-access MASQUERADE->eth0"
+  notify: Save iptables

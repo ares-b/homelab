@@ -1,0 +1,23 @@
+---
+- name: VPS | Install packages
+  ansible.builtin.apt:
+    name:
+      - wireguard-tools
+      - nginx
+      - libnginx-mod-stream
+      - ufw
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: VPS | Enable IP forwarding
+  ansible.builtin.include_tasks: forwarding.yml
+
+- name: VPS | Configure WireGuard
+  ansible.builtin.include_tasks: wireguard.yml
+
+- name: VPS | Configure nginx
+  ansible.builtin.include_tasks: nginx.yml
+
+- name: VPS | Configure firewall
+  ansible.builtin.include_tasks: firewall.yml

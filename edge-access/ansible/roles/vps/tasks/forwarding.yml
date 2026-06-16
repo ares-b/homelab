@@ -1,0 +1,9 @@
+---
+- name: VPS | Forwarding | Enable IP forwarding
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    state: present
+    sysctl_set: true
+    reload: true
+    sysctl_file: /etc/sysctl.d/99-edge-forward.conf

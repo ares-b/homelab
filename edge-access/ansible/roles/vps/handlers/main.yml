@@ -1,0 +1,15 @@
+---
+- name: Restart wg0
+  ansible.builtin.systemd:
+    name: wg-quick@wg0
+    state: restarted
+
+- name: Reload nginx
+  ansible.builtin.systemd:
+    name: nginx
+    state: reloaded
+
+- name: Reload iptables-persistent
+  ansible.builtin.command:
+    cmd: netfilter-persistent save
+  changed_when: true

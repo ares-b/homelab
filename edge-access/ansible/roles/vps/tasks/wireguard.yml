@@ -1,0 +1,39 @@
+---
+- name: VPS | WireGuard | Check private key exists
+  ansible.builtin.stat:
+    path: /etc/wireguard/private.key
+  register: _wg_key_stat
+
+- name: VPS | WireGuard | Fail if key missing
+  ansible.builtin.fail:
+    msg: "/etc/wireguard/private.key not found. Run site.yml (not the role directly) to bootstrap WireGuard keys first."
+  when: not _wg_key_stat.stat.exists
+
+- name: VPS | WireGuard | Fail if LXC pubkey not in config
+  ansible.builtin.fail:
+    msg: "wireguard.lxc_pubkey not set in config.sops.yaml. Run 'make lxc' or 'make deploy' first."
+  when: not (wireguard.lxc_pubkey | default(''))
+
+- name: VPS | WireGuard | Read private key
+  ansible.builtin.slurp:
+    src: /etc/wireguard/private.key
+  register: _vps_wg_private_key
+
+- name: VPS | WireGuard | Deploy wg0.conf
+  ansible.builtin.template:
+    src: wg0.conf.j2
+    dest: /etc/wireguard/wg0.conf
+    owner: root
+    group: root
+    mode: "0600"
+  vars:
+    _private_key: "{{ _vps_wg_private_key.content | b64decode | trim }}"
+    _lxc_pubkey: "{{ wireguard.lxc_pubkey }}"
+  notify: Restart wg0
+
+- name: VPS | WireGuard | Enable and start wg-quick@wg0
+  ansible.builtin.systemd:
+    name: wg-quick@wg0
+    state: started
+    enabled: true
+    daemon_reload: true

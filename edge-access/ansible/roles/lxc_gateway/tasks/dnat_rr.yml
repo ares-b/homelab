@@ -1,0 +1,46 @@
+---
+# Round-robin DNAT for a single port across k3s.ingress_ips.
+# Uses iptables statistic --mode nth: rule i selects 1/(N-i) of remaining traffic,
+# so each node gets exactly 1/N of total. Last node has no statistic (catches remainder).
+# Called via include_tasks with loop_var: _port
+
+- name: "LXC Gateway | Forwarding | Check DNAT rules (port {{ _port }})"
+  ansible.builtin.shell: >-
+    iptables -t nat -C PREROUTING -i wg0 -p tcp --dport {{ _port }}
+    {% if idx < k3s.ingress_ips | length - 1 %}
+    -m statistic --mode nth --every {{ k3s.ingress_ips | length - idx }} --packet 0
+    {% endif %}
+    -j DNAT --to-destination {{ item }}:{{ _port }}
+  loop: "{{ k3s.ingress_ips }}"
+  loop_control:
+    index_var: idx
+  register: _dnat_checks
+  failed_when: false
+  changed_when: false
+
+- name: "LXC Gateway | Forwarding | Flush stale DNAT rules (port {{ _port }})"
+  ansible.builtin.shell: |
+    set -o pipefail
+    stale=$(iptables -t nat -S PREROUTING | grep -- '--dport {{ _port }} -j DNAT')
+    if [ -n "$stale" ]; then
+      echo "$stale" | sed 's/^-A/-D/' | xargs -L1 iptables -t nat
+      echo changed
+    fi
+  args:
+    executable: /bin/bash
+  register: _flush_result
+  when: _dnat_checks.results | selectattr('rc', 'ne', 0) | list | length > 0
+  changed_when: "'changed' in (_flush_result.stdout | default(''))"
+
+- name: "LXC Gateway | Forwarding | Insert DNAT rules (port {{ _port }})"
+  ansible.builtin.shell: >-
+    iptables -t nat -A PREROUTING -i wg0 -p tcp --dport {{ _port }}
+    {% if idx < k3s.ingress_ips | length - 1 %}
+    -m statistic --mode nth --every {{ k3s.ingress_ips | length - idx }} --packet 0
+    {% endif %}
+    -j DNAT --to-destination {{ item }}:{{ _port }}
+  loop: "{{ k3s.ingress_ips }}"
+  loop_control:
+    index_var: idx
+  when: _dnat_checks.results | selectattr('rc', 'ne', 0) | list | length > 0
+  notify: Save iptables

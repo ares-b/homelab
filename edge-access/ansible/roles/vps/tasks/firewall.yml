@@ -1,0 +1,67 @@
+---
+- name: VPS | Firewall | Remove Oracle Cloud stray REJECT forward rule from rules.v4
+  ansible.builtin.lineinfile:
+    path: /etc/iptables/rules.v4
+    line: "-A FORWARD -j REJECT --reject-with icmp-host-prohibited"
+    state: absent
+
+- name: VPS | Firewall | Remove Oracle Cloud stray REJECT forward rule from live chain
+  ansible.builtin.iptables:
+    chain: FORWARD
+    jump: REJECT
+    reject_with: icmp-host-prohibited
+    state: absent
+
+- name: VPS | Firewall | Rate-limit SSH
+  community.general.ufw:
+    rule: limit
+    name: OpenSSH
+
+- name: VPS | Firewall | Allow WireGuard UDP
+  community.general.ufw:
+    rule: allow
+    port: "{{ wireguard.port }}"
+    proto: udp
+
+- name: VPS | Firewall | Allow HTTP
+  community.general.ufw:
+    rule: allow
+    port: "80"
+    proto: tcp
+
+- name: VPS | Firewall | Allow HTTPS
+  community.general.ufw:
+    rule: allow
+    port: "443"
+    proto: tcp
+
+- name: VPS | Firewall | Allow WireGuard peer forwarding to routed subnets
+  community.general.ufw:
+    rule: allow
+    route: true
+    interface_in: wg0
+    interface_out: wg0
+    src: "{{ wireguard.network }}"
+    dest: "{{ item }}"
+  loop: "{{ wireguard.routed_subnets }}"
+
+- name: VPS | Firewall | Allow WireGuard peer-to-peer forwarding
+  community.general.ufw:
+    rule: allow
+    route: true
+    interface_in: wg0
+    interface_out: wg0
+    src: "{{ wireguard.network }}"
+    dest: "{{ wireguard.network }}"
+
+- name: VPS | Firewall | Enable UFW with default deny incoming
+  community.general.ufw:
+    state: enabled
+    policy: deny
+    direction: incoming
+
+- name: VPS | Firewall | Set UFW default forward policy to allow
+  community.general.ufw:
+    state: enabled
+    policy: allow
+    direction: routed

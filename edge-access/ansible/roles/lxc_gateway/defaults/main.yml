@@ -1,0 +1,6 @@
+---
+# Derived from config.sops.yaml dict vars for use in tasks/templates.
+# Override only if running the role outside of site.yml with a different config.
+lxc_gateway_local_ip: "{{ lxc.ip.split('/')[0] }}"
+lxc_gateway_local_prefix: "{{ lxc.ip.split('/')[1] }}"
+lxc_gateway_local_gw: "{{ lxc.gateway }}"

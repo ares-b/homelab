@@ -1,0 +1,74 @@
+k3s:
+    ingress_http_port: 80
+    ingress_https_port: 443
+    ingress_ips:
+        - 10.0.0.10
+        - 10.0.0.11
+        - 10.0.0.12
+lxc:
+    ansible_ssh_private_key: ENC[AES256_GCM,data:f1GuTM/gfQSYt2/ISEsrn8idC0ftm2rSuBcQfXbuPI8OP/uzVAG8n3Zcus3olUPY+kAhh58S140xnhIxoMJEOfPuYoDe6R8xJXLZsxwffiRqkcdhrfllaDhHkLvFWXPUtyQuNBeJktGqaB39Bh4bB6vpjLDeidTIlZPGtv02NVbeEEfbeKZnbGsSLPPHV4GM7MtAkv3dQhS3yqn/auhzahqUYFykomP3sW+AiKAqw81q7/Gh1ECotobwOwDGSF7wf5u4pXNlCw4I3KsDsdgnRYBX1KFg4+kdz8iijGbkSGCVxYWo0pjFjWWziIhnXtA6oRDUfOUSV0yXgCO8TdO6s5M4u43H9hsY+Ksam0OYHvt177PTU0MrKq/w2txm6ZjTS46adaIAGio18TdmM/Bjr4NmcQAt7V5hDo8ZOkaNAiZOnooG3QfR+zGXOP808+TPeGjwwe2qplwd5uiSOPtuv2O6KQMB7+HnLZ1DX/p/cVGzHQ1W5EoCDRVcHtW9XEdfmhIugRvysL9uxcbQM4pS7U+gwzCS/5hYgIGMupTz404rkxKeL/6sn0TCx9FEe+rMftQS6WghEeFuEnXqr2B0CgDpO+WyI+DecgTblgavgG58bdGNhRkInbM4gpjSWDeJN1DjePzdWsT8XiOy2JX6EE8NtZzBXjKSX3ZqdKK4YioAipzpFN9p1EbAJVFE2vkg4Kr8R4IKhrGFW2PU9QhMLDkFVH4=,iv:weXViVwMCX1L3Fg93oWB+nULQq/AhkPZLzykhzkVTd4=,tag:NdA2hYuUyRBxo5wR1HaiMQ==,type:str]
+    bridge: vmbr10
+    cpus: 1
+    disk_size: 4
+    gateway: 10.0.0.1
+    hostname: edge-gateway
+    ip: 10.0.0.200/24
+    memory: 512
+    ssh_public_key: REDACTED_SSH_PUBKEY
+    ssh_user: root
+    storage: local-lvm
+    vmid: 200
+nginx:
+    public_whitelist: []
+proxmox:
+    api_token: ENC[AES256_GCM,data:E0fcBEEYjLA/lG5PX+c7DP4ndh6D63Bt3IjcM6sXb5GY6blJtZnqQyGpjplBTCkoekCFkMeOE/yb+Vxr1GnfCClr,iv:bVONCptW51aEAhn2pzWabFiNWt3lyRQ+xi3/gW0O3IE=,tag:QFKcxFNcA0dx4Yo1z6cX2A==,type:str]
+    endpoint: https://REDACTED_PVE_IP:8006/
+    insecure: true
+    node: pve01
+    ssh_private_key: ENC[AES256_GCM,data:URNOoitJPPpu9jzrGOGZCvCt6h46TPeqswyRZjZ2yN+Jae8V7Nla1UBHNmcuMmNScBlUOLzMGF9awP/dM8gTIeY7sPJl0zsWXEumYzcn8QLvf3G+9y9p4E2f/WLQsMNw38ZfMeo3Yj+sBvZSPhWoYrGRyfdNn7b9Nm4mjGHqO7qO4GxNXqghdCjnOtdboZmkPQfRmbxzL4g6S4NAsjm+znPhBvdtg+bqAh0gkQXSk1oB9S5tMPVPJfMEp7MeVd90GO4dzj8fsuFn1sctYzfFAr94Aw5z3fksHn/J8T/oTEtitSkpKMxGger6uqSRy2OVNhzpl6QPtsDacGDLswaJLr0cJgp9kiUiOq1UIfIqC5AySN/Ybc+PF4ins6MOeW8IGfHlQwuV2GfkxTXtTPk3OXchXqvbbWpqu7U/6zGUxQ/SVe+cwig8/1LHej/3DvcnUeWWkqXkICFLMsxRF1hTdHvQ0NPe5zkhPFGLb3vjTWb5yJ5yezDHGvy37QFwv3ssfzyCAcpkNK931tF9/m84cxQPC+IcTXSAs4wp/sw5CmwtzjBSBrnxeZ6Bw0Yqq4aVUGQlOuWkEXm+ktDmaWnr+JXGjmcAJq1geUvh9iUC48FJTfbju6QwVM2BzgLCrScuKX8fjTCCHy3MAl9PANFHi5o8gFjzSeEZujuj7Wif2acTrZixo7sJwiblrW+iWKnDlR6Plw==,iv:INorFJty5vdADGVFcfSgSc8y01tHmp9MSZdGKEdy5yQ=,tag:QtyVclswlJFlXbaKrcbsGg==,type:str]
+    ssh_user: ansible
+vps:
+    public_ip: REDACTED_VPS_IP
+    ssh_private_key: ENC[AES256_GCM,data:9lHPe52tP9NCthHjGCV7DGihywYG6W2YUR+Hx1ssERd84UuL48VedspN06Jq4LSS8WQetV/EPyA/eB5/f7lokUfEf2Z/Jp9J97w2FyF1av5oHKOEucY6wiDe8spkh+bpLo3qLKbtwEmLXQMr1gumGnYA2aaLk20YaygiA1M5Qa0RlnKkJV3noJDMhsCEjk4z/49LgkHIiLqYJuMavtrNUUd0dm70bqmhvpxXFe8fV9Y/q6LOj6LqyVfPRC8zHpvmr7oDvCCOxWFqHDB8gr3yHO9ErxkyulGrVDz3yaIYQO13pDyNSrR1wVxy4xzsVWDtMb4lKeEqvjrKeL5yRnLEClZJN8aLLoD+JM37ubmhL1zPi0bSZmcxHFZYsrMHXUTDtHM/HdCx9MoVUY6BO8AP2064+vGck6naZeuqY9iLP2Rnss3dsCNLah1t5Af5EUZ3JNrCOhuKI86Is29B14dGQS7aRNUR68hEpfYVI4j5AN/dRnLdAvhsFN1V0tqXhwKgDcSOT1+LBXhDy70FfdJRH3eYO6W6yH5+3B1a4ki8n0UFKfH+BXiXg4ubU0D9vp6YtFIJ+EJyCoo1nqJEfW2NWSv3aw6c+5y6i19ETGo0eOWYFIGwtI8hlaePDFmiwo61Ay+VEy3en0GLRREJNaAhRRA5dNOIbMw/uXBWFdW8dqmtpQgfKMtUJqwhOrJx7SchvCMrNt+YjPSRM1M9VKrAEtW/Qhc=,iv:1ONzV5/pNoPoLMz7AL4h/vI4OO+Tz3KTCa4lzHhyJEs=,tag:CPWH4lqP+s+aI8GViY21gg==,type:str]
+    ssh_user: ansible
+wireguard:
+    extra_peers:
+        - name: pc
+          persistent_keepalive: 25
+          preshared_key: REDACTED_WG_PSK
+          public_key: REDACTED_WG_PUBKEY
+          wg_ip: 172.16.0.10
+        - name: phone
+          persistent_keepalive: 25
+          preshared_key: REDACTED_WG_PSK
+          public_key: REDACTED_WG_PUBKEY
+          wg_ip: 172.16.0.11
+    lxc_ip: 172.16.0.2
+    lxc_pubkey: REDACTED_WG_PUBKEY
+    network: 172.16.0.0/24
+    port: 51820
+    psk_lxc: REDACTED_WG_PSK
+    routed_subnets:
+        - 10.0.0.0/24
+        - REDACTED_PVE_IP/32
+    vps_ip: 172.16.0.1
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age1aswdstmpfeyztl2z0mz7a336g2kxd9z4g3zje3tuf6lqzum3ravs0d42fd
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBiYWFsR2VHWUJ1dEZxT3ZL
+            ZmNyWDFxVFVQb2M2NUQ3UWVHZW9IdFBzUlg4CjRFMU9mNUNqNW9WUlA5NjRDc3Vr
+            aUY4NGFlYWFWbmxXcm5YbUtZZjIwVzgKLS0tIHcrNGE3UGtWTml0aCtudzhvdXNx
+            K1RnY1JpaTZVRGY5RmlJL3BudkM3c1UKZ0hS3e4PoMHdr/931KvpBZuX6DT2KxCU
+            eLLQaXmNGqwm0pVeprcJw7lPzlW+WssU9HZbxqQh++etjMlhGDHu5w==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2026-06-16T06:56:11Z"
+    mac: ENC[AES256_GCM,data:/5uQf6PkfPLmW9Ox7GgmX2CrK472Br5o2f4fAgkRUdLSPa/I19KcvW+UapUnjQkggfNERGFE+krIHDqj3hUwaNKAiatNpWuI+R04+DqrQXSH+eaO+dYgMfzI9quWAehTw9pkLOzoVc01bJMdFalSNY795yaKpHLFooWW6B/aDVY=,iv:ESY7aTU4E4fNAGhEjrBJ0HU7XrvzwS0mWQQcJRi5ihQ=,tag:5+ncgKgvit033x44b9KQQQ==,type:str]
+    pgp: []
+    encrypted_regex: ^(.*_token|.*_password|.*_hash|.*_private_key)$
+    version: 3.9.0

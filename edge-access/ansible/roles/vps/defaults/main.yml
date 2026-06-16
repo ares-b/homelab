@@ -1,0 +1,2 @@
+---
+# All vars come from config.sops.yaml, decrypted and passed via -e @{} in Makefile.

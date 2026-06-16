@@ -1,0 +1,23 @@
+[Interface]
+Address = {{ wireguard.vps_ip }}/24
+PrivateKey = {{ _private_key }}
+ListenPort = {{ wireguard.port }}
+
+[Peer]
+# LXC gateway
+PublicKey = {{ _lxc_pubkey }}
+PresharedKey = {{ wireguard.psk_lxc }}
+AllowedIPs = {{ ([wireguard.lxc_ip ~ '/32'] + wireguard.routed_subnets | default([])) | join(', ') }}
+{% for peer in wireguard.extra_peers | default([]) %}
+
+[Peer]
+# {{ peer.name }}
+PublicKey = {{ peer.public_key }}
+{% if peer.preshared_key | default('') %}
+PresharedKey = {{ peer.preshared_key }}
+{% endif %}
+AllowedIPs = {{ peer.wg_ip }}/32
+{% if peer.persistent_keepalive is defined %}
+PersistentKeepalive = {{ peer.persistent_keepalive }}
+{% endif %}
+{% endfor %}

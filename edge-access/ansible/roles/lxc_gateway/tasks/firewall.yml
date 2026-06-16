@@ -1,0 +1,71 @@
+---
+- name: LXC Gateway | Firewall | Allow loopback INPUT
+  ansible.builtin.iptables:
+    chain: INPUT
+    in_interface: lo
+    jump: ACCEPT
+    comment: "edge-access allow loopback"
+  notify: Save iptables
+
+- name: LXC Gateway | Firewall | Allow established INPUT
+  ansible.builtin.iptables:
+    chain: INPUT
+    ctstate:
+      - ESTABLISHED
+      - RELATED
+    jump: ACCEPT
+    comment: "edge-access allow established"
+  notify: Save iptables
+
+- name: LXC Gateway | Firewall | Allow WireGuard INPUT
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: udp
+    destination_port: "{{ wireguard.port }}"
+    jump: ACCEPT
+    comment: "edge-access allow wg"
+  notify: Save iptables
+
+- name: LXC Gateway | Firewall | Allow SSH from WireGuard network
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: tcp
+    source: "{{ wireguard.network }}"
+    destination_port: "22"
+    jump: ACCEPT
+    comment: "edge-access allow ssh from wg"
+  notify: Save iptables
+
+- name: LXC Gateway | Firewall | Allow SSH from PVE gateway
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: tcp
+    source: "{{ lxc.gateway }}"
+    destination_port: "22"
+    jump: ACCEPT
+    comment: "edge-access allow ssh from pve"
+  notify: Save iptables
+
+- name: LXC Gateway | Firewall | Set default INPUT policy to DROP
+  ansible.builtin.iptables:
+    chain: INPUT
+    policy: DROP
+  notify: Save iptables
+
+- name: LXC Gateway | Firewall | Set default FORWARD policy to DROP
+  ansible.builtin.iptables:
+    chain: FORWARD
+    policy: DROP
+  notify: Save iptables
+
+- name: LXC Gateway | Firewall | Disable IPv6
+  ansible.posix.sysctl:
+    name: "{{ item }}"
+    value: "1"
+    state: present
+    sysctl_set: true
+    reload: true
+    sysctl_file: /etc/sysctl.d/99-edge-forward.conf
+  loop:
+    - net.ipv6.conf.all.disable_ipv6
+    - net.ipv6.conf.default.disable_ipv6

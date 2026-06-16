@@ -1,0 +1,20 @@
+---
+- name: LXC Gateway | Install packages
+  ansible.builtin.apt:
+    name:
+      - wireguard-tools
+      - iptables
+      - iptables-persistent
+      - netfilter-persistent
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: LXC Gateway | Configure WireGuard
+  ansible.builtin.include_tasks: wireguard.yml
+
+- name: LXC Gateway | Configure forwarding and DNAT
+  ansible.builtin.include_tasks: forwarding.yml
+
+- name: LXC Gateway | Configure firewall
+  ansible.builtin.include_tasks: firewall.yml

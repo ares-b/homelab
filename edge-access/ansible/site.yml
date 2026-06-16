@@ -1,0 +1,162 @@
+---
+- name: Prepare SSH keys
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Write VPS SSH private key
+      ansible.builtin.copy:
+        content: "{{ vps.ssh_private_key | b64decode }}"
+        dest: /tmp/ansible_vps_key
+        mode: "0600"
+      no_log: true
+      changed_when: false
+
+    - name: Write PVE SSH private key
+      ansible.builtin.copy:
+        content: "{{ proxmox.ssh_private_key | b64decode }}"
+        dest: /tmp/ansible_pve_key
+        mode: "0600"
+      no_log: true
+      changed_when: false
+
+    - name: Write LXC ansible SSH private key
+      ansible.builtin.copy:
+        content: "{{ lxc.ansible_ssh_private_key | b64decode }}"
+        dest: /tmp/ansible_lxc_key
+        mode: "0600"
+      no_log: true
+      changed_when: false
+
+- name: Ensure WireGuard module on PVE host
+  hosts: proxmox_nodes
+  become: true
+  tasks:
+    - name: Load WireGuard kernel module
+      community.general.modprobe:
+        name: wireguard
+        state: present
+
+    - name: Persist WireGuard module across reboots
+      ansible.builtin.copy:
+        content: "wireguard\n"
+        dest: /etc/modules-load.d/wireguard.conf
+        mode: "0644"
+
+    - name: Update pveam template list
+      ansible.builtin.command:
+        cmd: pveam update
+      changed_when: false
+
+    - name: Download Debian 12 LXC template
+      ansible.builtin.command:
+        cmd: pveam download local debian-12-standard_12.12-1_amd64.tar.zst
+        creates: /var/lib/vz/template/cache/debian-12-standard_12.12-1_amd64.tar.zst
+
+- name: Bootstrap WireGuard key on VPS
+  hosts: vps
+  become: true
+  tasks:
+    - name: Install wireguard-tools
+      ansible.builtin.apt:
+        name: wireguard-tools
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Generate WireGuard private key
+      ansible.builtin.shell: |
+        wg genkey > /etc/wireguard/private.key
+        chmod 600 /etc/wireguard/private.key
+      args:
+        creates: /etc/wireguard/private.key
+
+    - name: Derive WireGuard public key
+      ansible.builtin.shell: wg pubkey < /etc/wireguard/private.key
+      register: _pubkey
+      changed_when: false
+
+    - name: Set WireGuard public key fact
+      ansible.builtin.set_fact:
+        vps_wg_pubkey: "{{ _pubkey.stdout }}"
+
+- name: Bootstrap WireGuard key on LXC gateway
+  hosts: lxc_gateways
+  become: true
+  tasks:
+    - name: Install wireguard-tools
+      ansible.builtin.apt:
+        name: wireguard-tools
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Generate WireGuard private key
+      ansible.builtin.shell: |
+        wg genkey > /etc/wireguard/private.key
+        chmod 600 /etc/wireguard/private.key
+      args:
+        creates: /etc/wireguard/private.key
+
+    - name: Derive WireGuard public key
+      ansible.builtin.shell: wg pubkey < /etc/wireguard/private.key
+      register: _pubkey
+      changed_when: false
+
+    - name: Set WireGuard public key fact
+      ansible.builtin.set_fact:
+        lxc_wg_pubkey: "{{ _pubkey.stdout }}"
+
+- name: Persist LXC WireGuard public key to config.sops.yaml
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    config_file: "{{ playbook_dir }}/../config.sops.yaml"
+  tasks:
+    - name: Store LXC WireGuard pubkey in config
+      when:
+        - hostvars['edge-gateway']['lxc_wg_pubkey'] is defined
+        - (wireguard.lxc_pubkey | default('')) != hostvars['edge-gateway']['lxc_wg_pubkey']
+      block:
+        - name: Load existing config
+          ansible.builtin.set_fact:
+            _cfg: "{{ lookup('community.sops.sops', config_file) | from_yaml }}"
+
+        - name: Write updated config with LXC pubkey
+          ansible.builtin.copy:
+            dest: "{{ config_file }}"
+            mode: "0600"
+            content: "{{ _cfg | combine({'wireguard': _cfg.wireguard | combine({'lxc_pubkey': hostvars['edge-gateway']['lxc_wg_pubkey']})}, recursive=true) | to_nice_yaml(width=4096) }}"
+          no_log: true
+
+        - name: Encrypt config
+          ansible.builtin.command: sops --encrypt --in-place {{ config_file }}
+          changed_when: true
+
+- name: Configure VPS
+  hosts: vps
+  become: true
+  roles:
+    - vps
+
+- name: Configure LXC gateway
+  hosts: lxc_gateways
+  become: true
+  roles:
+    - lxc_gateway
+
+- name: Cleanup SSH keys
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Remove temp SSH keys
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/ansible_vps_key
+        - /tmp/ansible_pve_key
+        - /tmp/ansible_lxc_key
+      changed_when: false

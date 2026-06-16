@@ -1,0 +1,58 @@
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+include /etc/nginx/modules-enabled/*.conf;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    limit_conn_zone $binary_remote_addr zone=http_per_ip:10m;
+
+    server {
+        listen 80;
+        server_name _;
+        limit_conn http_per_ip 10;
+        return 301 https://$host$request_uri;
+    }
+}
+
+stream {
+    limit_conn_zone $binary_remote_addr zone=stream_per_ip:10m;
+
+    geo $is_vpn_peer {
+        default          0;
+        {{ wireguard.network }}  1;
+    }
+
+    map $ssl_preread_server_name $whitelisted {
+{% for host in nginx.public_whitelist %}
+        {{ host }}  1;
+{% endfor %}
+        default  0;
+    }
+
+    map $is_vpn_peer:$whitelisted $backend {
+        ~^1:     lxc_https;
+        0:1      lxc_https;
+        default  blocked;
+    }
+
+    upstream blocked {
+        server 127.0.0.1:9;
+    }
+
+    upstream lxc_https {
+        server {{ wireguard.lxc_ip }}:{{ k3s.ingress_https_port }};
+    }
+
+    server {
+        listen 443;
+        ssl_preread on;
+        proxy_pass $backend;
+        limit_conn stream_per_ip 32;
+        proxy_timeout 600s;
+        proxy_connect_timeout 5s;
+    }
+}

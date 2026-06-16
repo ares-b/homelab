@@ -1,3 +1,8 @@
+[IPSET management]
+{% for network in pve_security_trusted_networks %}
+{{ network }}
+{% endfor %}
+
 [OPTIONS]
 enable: {{ 1 if pve_security_firewall_enabled else 0 }}
 policy_in: {{ pve_security_firewall_policy_in }}
