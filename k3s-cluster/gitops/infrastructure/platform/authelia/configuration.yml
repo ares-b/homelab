@@ -61,7 +61,7 @@ identity_providers:
     clients:
       - client_id: garage-ui
         client_name: Garage UI
-        client_secret: '{{ secret "/secrets-oidc/GARAGE_UI_CLIENT_SECRET_HASH" }}'
+        client_secret: "placeholder"
         public: false
         authorization_policy: two_factor
         require_pkce: true
