@@ -1,0 +1,51 @@
+theme: dark
+
+log:
+  level: info
+
+server:
+  address: tcp://0.0.0.0:9091/
+
+authentication_backend:
+  password_reset:
+    disable: false
+  file:
+    path: /config/users.yaml
+    password:
+      algorithm: argon2id
+
+totp:
+  issuer: int.edgedatalab.com
+  algorithm: SHA1
+  digits: 6
+  period: 30
+
+access_control:
+  default_policy: deny
+  rules:
+    - domain: "*.int.edgedatalab.com"
+      policy: two_factor
+
+session:
+  cookies:
+    - name: authelia_session
+      domain: int.edgedatalab.com
+      authelia_url: https://auth.int.edgedatalab.com
+      expiration: 1h
+      inactivity: 30m
+      remember_me: 720h
+
+regulation:
+  max_retries: 3
+  find_time: 2m
+  ban_time: 5m
+
+storage:
+  local:
+    path: /data/db.sqlite3
+
+notifier:
+  smtp:
+    address: submission://REDACTED_SMTP_HOST:587
+    sender: "EdgeDatalab <noreply@edgedatalab.com>"
+    subject: "[EdgeDatalab] {title}"

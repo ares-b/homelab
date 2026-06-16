@@ -2,7 +2,6 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - namespace.yaml
-  - configmap.yaml
   - sealed-admin-token.yaml
   - pvc-data.yaml
   - pdb.yaml
@@ -12,3 +11,9 @@ resources:
   - servicemonitor.yaml
   - ingressroute.yaml
   - ui
+
+configMapGenerator:
+  - name: garage-config
+    namespace: garage
+    files:
+      - garage.toml
