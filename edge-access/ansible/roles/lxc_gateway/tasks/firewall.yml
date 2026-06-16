@@ -46,6 +46,16 @@
     comment: "edge-access allow ssh from pve"
   notify: Save iptables
 
+- name: LXC Gateway | Firewall | Allow DNS from WireGuard peers
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: udp
+    source: "{{ wireguard.network }}"
+    destination_port: "53"
+    jump: ACCEPT
+    comment: "edge-access allow dns from wg"
+  notify: Save iptables
+
 - name: LXC Gateway | Firewall | Set default INPUT policy to DROP
   ansible.builtin.iptables:
     chain: INPUT

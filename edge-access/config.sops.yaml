@@ -1,3 +1,5 @@
+dns:
+    domain: int.edgedatalab.com
 k3s:
     ingress_http_port: 80
     ingress_https_port: 443
@@ -6,7 +8,7 @@ k3s:
         - 10.0.0.11
         - 10.0.0.12
 lxc:
-    ansible_ssh_private_key: ENC[AES256_GCM,data:f1GuTM/gfQSYt2/ISEsrn8idC0ftm2rSuBcQfXbuPI8OP/uzVAG8n3Zcus3olUPY+kAhh58S140xnhIxoMJEOfPuYoDe6R8xJXLZsxwffiRqkcdhrfllaDhHkLvFWXPUtyQuNBeJktGqaB39Bh4bB6vpjLDeidTIlZPGtv02NVbeEEfbeKZnbGsSLPPHV4GM7MtAkv3dQhS3yqn/auhzahqUYFykomP3sW+AiKAqw81q7/Gh1ECotobwOwDGSF7wf5u4pXNlCw4I3KsDsdgnRYBX1KFg4+kdz8iijGbkSGCVxYWo0pjFjWWziIhnXtA6oRDUfOUSV0yXgCO8TdO6s5M4u43H9hsY+Ksam0OYHvt177PTU0MrKq/w2txm6ZjTS46adaIAGio18TdmM/Bjr4NmcQAt7V5hDo8ZOkaNAiZOnooG3QfR+zGXOP808+TPeGjwwe2qplwd5uiSOPtuv2O6KQMB7+HnLZ1DX/p/cVGzHQ1W5EoCDRVcHtW9XEdfmhIugRvysL9uxcbQM4pS7U+gwzCS/5hYgIGMupTz404rkxKeL/6sn0TCx9FEe+rMftQS6WghEeFuEnXqr2B0CgDpO+WyI+DecgTblgavgG58bdGNhRkInbM4gpjSWDeJN1DjePzdWsT8XiOy2JX6EE8NtZzBXjKSX3ZqdKK4YioAipzpFN9p1EbAJVFE2vkg4Kr8R4IKhrGFW2PU9QhMLDkFVH4=,iv:weXViVwMCX1L3Fg93oWB+nULQq/AhkPZLzykhzkVTd4=,tag:NdA2hYuUyRBxo5wR1HaiMQ==,type:str]
+    ansible_ssh_private_key: ENC[AES256_GCM,data:9hzsd1LTfqDrUoWL2Ik7gRNxrw4VEJM+pGx3nrvoRlr52b6kKY53L7tJBJdDXEVpsjFZbeWDzPLZG02V8SV57tY63QMsJLYpGD1bqURrojqvX26o/gbtPD62jojYfcAUEUVD5hy8C7nyYVrGg0AAxVngT3qWF7uxaXhmkPPN819N1NPvHYbKoUBRdv/c0eYSMLIZhBK0+fMzuBReLCKzvirOTFGYATzqcBAEO9BtnNVc4N2imTpMFyCOOf5bkyGml2w0BmQ4N5bj26L7DZrJFu7Y9vs+JqQ3n4Lt5XyAwoNJ5RzORNv9pjjDJrFGG1T49neerCEnYMrnZflZMC/heWzkP0REIPHqg9TbdAeswgvd32M3W0GjbFST1Xev5E/r8DZMcldfqvxafs7kh0f+rOIiNLF8KMjEgcwxIL4C4UB/S/5Upc23cE72ESk1l9Z2TB99WeDtgmBSygqlQpveOOcqDGFKcFFvjouPGI6SCkVGmWcIRz8+FIGy427g+Fo1+pchz5lPcD2i/r7axhcVqdcM6JhJBYiEZDsHfM6kcGbAEdojDm8m9DNgb/HSx+I5DYTrmt1DUz6qPxSPnQqwJB6JMWCZk5EIct2h44Kg2c2foFlTXtzttyCO5ySlJTs9KIAI3R6/y0sB53XE7YfjUITbtPwqe3IG028lRVuxvPaUcaN1zodxSBHsyed+DHSQZD4+k/ojo5OAeRnwCrUIGNOYnDE=,iv:2l+Mc7P2ad7/ewV6mbnIqf4qd7aWoiqt2wRNXs92QzQ=,tag:3TEACSax4ufRFgbn85bngA==,type:str]
     bridge: vmbr10
     cpus: 1
     disk_size: 4
@@ -21,15 +23,15 @@ lxc:
 nginx:
     public_whitelist: []
 proxmox:
-    api_token: ENC[AES256_GCM,data:E0fcBEEYjLA/lG5PX+c7DP4ndh6D63Bt3IjcM6sXb5GY6blJtZnqQyGpjplBTCkoekCFkMeOE/yb+Vxr1GnfCClr,iv:bVONCptW51aEAhn2pzWabFiNWt3lyRQ+xi3/gW0O3IE=,tag:QFKcxFNcA0dx4Yo1z6cX2A==,type:str]
+    api_token: ENC[AES256_GCM,data:/JtuV0oKJoRaQrFFMPznW6krnSXRO+2VzFOS1cX+os/BBvgn6vl4Rf8FrF7XGVwP9lHXBsPWjHhUKlrJPw9lU5D9,iv:uengEtj/6Q+XvrQiVdGTSXiuPrHloxqzIOls9KWSlbU=,tag:Ik+HZOSndway9HLRWgNvJQ==,type:str]
     endpoint: https://REDACTED_PVE_IP:8006/
     insecure: true
     node: pve01
-    ssh_private_key: ENC[AES256_GCM,data:URNOoitJPPpu9jzrGOGZCvCt6h46TPeqswyRZjZ2yN+Jae8V7Nla1UBHNmcuMmNScBlUOLzMGF9awP/dM8gTIeY7sPJl0zsWXEumYzcn8QLvf3G+9y9p4E2f/WLQsMNw38ZfMeo3Yj+sBvZSPhWoYrGRyfdNn7b9Nm4mjGHqO7qO4GxNXqghdCjnOtdboZmkPQfRmbxzL4g6S4NAsjm+znPhBvdtg+bqAh0gkQXSk1oB9S5tMPVPJfMEp7MeVd90GO4dzj8fsuFn1sctYzfFAr94Aw5z3fksHn/J8T/oTEtitSkpKMxGger6uqSRy2OVNhzpl6QPtsDacGDLswaJLr0cJgp9kiUiOq1UIfIqC5AySN/Ybc+PF4ins6MOeW8IGfHlQwuV2GfkxTXtTPk3OXchXqvbbWpqu7U/6zGUxQ/SVe+cwig8/1LHej/3DvcnUeWWkqXkICFLMsxRF1hTdHvQ0NPe5zkhPFGLb3vjTWb5yJ5yezDHGvy37QFwv3ssfzyCAcpkNK931tF9/m84cxQPC+IcTXSAs4wp/sw5CmwtzjBSBrnxeZ6Bw0Yqq4aVUGQlOuWkEXm+ktDmaWnr+JXGjmcAJq1geUvh9iUC48FJTfbju6QwVM2BzgLCrScuKX8fjTCCHy3MAl9PANFHi5o8gFjzSeEZujuj7Wif2acTrZixo7sJwiblrW+iWKnDlR6Plw==,iv:INorFJty5vdADGVFcfSgSc8y01tHmp9MSZdGKEdy5yQ=,tag:QtyVclswlJFlXbaKrcbsGg==,type:str]
+    ssh_private_key: ENC[AES256_GCM,data:4idgdILR0NoEgmLf6LeWb6Y0Kx2P0NgNHE/8bxBqNG4Ecomcgffnd4Vh/64cj8Yo6lv01iN6fQg/xcRvW+RmC062EUHKoVXclRbnaZdwpvqO0eqP26fk2Tke9H6wN3RMnJWTvuDCS0J7s/k8S6QkQ0PReaGhQ9w+i0faRXySMiMf/9VqvWQ5Daha3fLsFgrPxtqrMoxZ3kFJLlXkqe5uFDRkoA683++IY4igSiE2Db4d6pU1MBESQen5dYBWodKpcqbEm8atMKegSE5cXhBoT/6pZVepmITI9XI5uLkeK6gCjGR394Hfrr2MIs7S6tM1/pxhZcSpnwfnkkA5Rc+PiTZbFx+vyYT9AWUkC9+kTBXFwCk56UC4Sv/McOMzbHkUyVIOuWM1Sm+X7SmH6Ndcz0pmNTof6g1Klgnc98V9W2Liy8tA5RxzJJIyFG84ywvOtNSGIja+tGlITq0m5dc5BuYZY0HympVRYbpvS/YRZFwzFXstKgYji6Wnti986MOTp9AFKSHJTFCCCy0nbm2pPFwweAMv/l5DRaihtvHLbAK0r0qo6nYf/Q9TGsp1QjRZc5KIlclYNvh5Pj/XZNydq/t4bNt9mNl9DyGnxcoNr6IHU0yUy5q9hTYcUnzXzj7fyLvmxdqanj7041YHgQTgZ9ubCqIuA9XEkFlAmT41hMy/7Dn8ZQNFpHErKCpvX1tjfHpcsw==,iv:Q0rLAliTgvh/UEy2M/nKcKuEjzQ05yDTopaiHW91HK4=,tag:xySrrkCu1o8P2gqcxKndvw==,type:str]
     ssh_user: ansible
 vps:
     public_ip: REDACTED_VPS_IP
-    ssh_private_key: ENC[AES256_GCM,data:9lHPe52tP9NCthHjGCV7DGihywYG6W2YUR+Hx1ssERd84UuL48VedspN06Jq4LSS8WQetV/EPyA/eB5/f7lokUfEf2Z/Jp9J97w2FyF1av5oHKOEucY6wiDe8spkh+bpLo3qLKbtwEmLXQMr1gumGnYA2aaLk20YaygiA1M5Qa0RlnKkJV3noJDMhsCEjk4z/49LgkHIiLqYJuMavtrNUUd0dm70bqmhvpxXFe8fV9Y/q6LOj6LqyVfPRC8zHpvmr7oDvCCOxWFqHDB8gr3yHO9ErxkyulGrVDz3yaIYQO13pDyNSrR1wVxy4xzsVWDtMb4lKeEqvjrKeL5yRnLEClZJN8aLLoD+JM37ubmhL1zPi0bSZmcxHFZYsrMHXUTDtHM/HdCx9MoVUY6BO8AP2064+vGck6naZeuqY9iLP2Rnss3dsCNLah1t5Af5EUZ3JNrCOhuKI86Is29B14dGQS7aRNUR68hEpfYVI4j5AN/dRnLdAvhsFN1V0tqXhwKgDcSOT1+LBXhDy70FfdJRH3eYO6W6yH5+3B1a4ki8n0UFKfH+BXiXg4ubU0D9vp6YtFIJ+EJyCoo1nqJEfW2NWSv3aw6c+5y6i19ETGo0eOWYFIGwtI8hlaePDFmiwo61Ay+VEy3en0GLRREJNaAhRRA5dNOIbMw/uXBWFdW8dqmtpQgfKMtUJqwhOrJx7SchvCMrNt+YjPSRM1M9VKrAEtW/Qhc=,iv:1ONzV5/pNoPoLMz7AL4h/vI4OO+Tz3KTCa4lzHhyJEs=,tag:CPWH4lqP+s+aI8GViY21gg==,type:str]
+    ssh_private_key: ENC[AES256_GCM,data:dO92o4M3Jhuu2hjOzqrvR9qevXcv+RozwQuQx6Ph1JDwkQ++cO8wWul92jNnxjYpitRedWHaruVsGgbJf+GBx9N4qrCRL9jvEBiH3tjQVszZiWxAsFNpW3aUROBdKmYsLBVZyyO+dOrrr6gCefoKeJLTJEYV09kaqfW1Jj9stRA6H2/nr0vTzPzEfdmBN9Phx1fBx0qZUXAFrpf9KatTXbKP/h4PiLAOXpE5Adzaqa08Nk5uZtj1qI4CpLdGXgwXkP01OGOqNKiXHJ11tr/5qlaD7yRVQ1p1+OXSUxG9GnUvxKtnvLzt10Zf1Q3laJkO5/J/7LoB8ITOg2cN1oPp7qEgkA4gB3hsrtEC5sr43Coip+4TENUmKa/GK8Vl0Kgw9tPbn8zfH9zmzuMXLyic6ZHxtOozD/hCD/w2qejXo4a7I7nzZ4KEbTvnH4aV/dvTTGitYih8Ym1R4D9BRxu6uXow6FOcqyHlAqJ9JkANk1v+7w6vvl10jZvyFANNDmSnNVVeWINygMEF2PRaaZfmRADHAwkjH/IrygP6dS2UCtTjCMXNeTD35Z6PJyvYDHL/OKfibTh/Rh5Tlh4eb/QUcr7F/K2YBUyft3FXj5R5rfssKOs9XjLb14cL6q4lkZ0o8xQLwh1TMv+uwAGJ8IZ8rlEsZNx2R5a3YQOzFs7CMXXRpQgWdNLLAFy8IlC14WapcgoahMBc8/7KVDxxctyZIW2OUIc=,iv:Z5IJBT41MuEE37VUbrFK5a/Qh7b+Ki1iDRzluZEo/3o=,tag:UqxjIdgNYXuW/YlatW1Ucw==,type:str]
     ssh_user: ansible
 wireguard:
     extra_peers:
@@ -61,14 +63,14 @@ sops:
         - recipient: age1aswdstmpfeyztl2z0mz7a336g2kxd9z4g3zje3tuf6lqzum3ravs0d42fd
           enc: |
             -----BEGIN AGE ENCRYPTED FILE-----
-            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBiYWFsR2VHWUJ1dEZxT3ZL
-            ZmNyWDFxVFVQb2M2NUQ3UWVHZW9IdFBzUlg4CjRFMU9mNUNqNW9WUlA5NjRDc3Vr
-            aUY4NGFlYWFWbmxXcm5YbUtZZjIwVzgKLS0tIHcrNGE3UGtWTml0aCtudzhvdXNx
-            K1RnY1JpaTZVRGY5RmlJL3BudkM3c1UKZ0hS3e4PoMHdr/931KvpBZuX6DT2KxCU
-            eLLQaXmNGqwm0pVeprcJw7lPzlW+WssU9HZbxqQh++etjMlhGDHu5w==
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB5dGQxV3pZYy9ndkd0TEtL
+            dHNJL3psOWd4a24ydzR4R2l4cmZScTRXKzFrCklpQU9CRkJiSHh3dkI3WXpjUVYw
+            VEhWYWEvWGd5cmU1dVFKZGVNMDRaNmMKLS0tIDhuaG1WU2N5MmZ4SThCWUM5d05C
+            NG55dmg5WUNJL0k4WG0rQklRWUtkbWMKA5hTgVcd+eI/fp66+xiSXxP0xjXmJZB1
+            0/meeTljoS5g9m05IaHkWO+i4sQ/D9gM3ais2U3MBxOWZD5ur5jBQg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2026-06-16T06:56:11Z"
-    mac: ENC[AES256_GCM,data:/5uQf6PkfPLmW9Ox7GgmX2CrK472Br5o2f4fAgkRUdLSPa/I19KcvW+UapUnjQkggfNERGFE+krIHDqj3hUwaNKAiatNpWuI+R04+DqrQXSH+eaO+dYgMfzI9quWAehTw9pkLOzoVc01bJMdFalSNY795yaKpHLFooWW6B/aDVY=,iv:ESY7aTU4E4fNAGhEjrBJ0HU7XrvzwS0mWQQcJRi5ihQ=,tag:5+ncgKgvit033x44b9KQQQ==,type:str]
+    lastmodified: "2026-06-16T12:52:21Z"
+    mac: ENC[AES256_GCM,data:MBmAB6nOr3neR8U5b8n7opk7TG9E13tFbNWy8YtuZ3sbctIHlvSXcV7Pc5CzCythbV44HCZ27geVt1W2bR8ndmTnN1DTpIwx/3NBmhKpdA6v2ljI0dAdnGNCDoUEcEmg4xFCnnWKKlebPPhZS9fg48eY+vnJP2ScCKzntEHNi84=,iv:urItr90sG3EdcfLaOXr4IEYZiq6TtTrOlbQxi1AoqQw=,tag:CxzpEvIu5lf3aU2zTUcfng==,type:str]
     pgp: []
     encrypted_regex: ^(.*_token|.*_password|.*_hash|.*_private_key)$
     version: 3.9.0

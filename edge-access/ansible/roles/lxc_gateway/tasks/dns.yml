@@ -1,0 +1,23 @@
+---
+- name: LXC Gateway | DNS | Install dnsmasq
+  ansible.builtin.apt:
+    name: dnsmasq
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: LXC Gateway | DNS | Deploy edge DNS config
+  ansible.builtin.template:
+    src: dnsmasq.conf.j2
+    dest: /etc/dnsmasq.d/edge.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart dnsmasq
+
+- name: LXC Gateway | DNS | Enable and start dnsmasq
+  ansible.builtin.systemd:
+    name: dnsmasq
+    state: started
+    enabled: true
+    daemon_reload: true

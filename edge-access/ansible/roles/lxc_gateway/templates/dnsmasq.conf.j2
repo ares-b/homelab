@@ -1,0 +1,18 @@
+interface=wg0
+bind-interfaces
+no-hosts
+no-resolv
+log-queries=extra
+log-facility=/var/log/dnsmasq.log
+
+server=1.1.1.1
+server=8.8.8.8
+
+cache-size=1000
+neg-ttl=60
+
+# PVE — direct via routed subnet, more specific than wildcard below
+address=/pve.{{ dns.domain }}/{{ proxmox.endpoint | urlsplit('hostname') }}
+
+# All *.domain → LXC wg0 IP; existing DNAT round-robin handles k3s load balancing
+address=/.{{ dns.domain }}/{{ wireguard.lxc_ip }}
