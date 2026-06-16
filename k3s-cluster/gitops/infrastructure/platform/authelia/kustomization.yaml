@@ -9,6 +9,7 @@ resources:
   - ingressroute.yaml
   - sealed-authelia-users.yaml
   - sealed-authelia-smtp.yaml
+  - sealed-authelia-oidc.yaml
 
 configMapGenerator:
   - name: authelia

@@ -23,8 +23,14 @@ totp:
 access_control:
   default_policy: deny
   rules:
-    - domain: "*.int.edgedatalab.com"
+    - domain: grafana.int.edgedatalab.com
+      subject: group:admins
       policy: two_factor
+    - domain: garage.int.edgedatalab.com
+      subject: group:admins
+      policy: two_factor
+    - domain: auth.int.edgedatalab.com
+      policy: bypass
 
 session:
   cookies:
@@ -49,3 +55,27 @@ notifier:
     address: submission://REDACTED_SMTP_HOST:587
     sender: "EdgeDatalab <noreply@edgedatalab.com>"
     subject: "[EdgeDatalab] {title}"
+
+identity_providers:
+  oidc:
+    clients:
+      - client_id: garage-ui
+        client_name: Garage UI
+        client_secret: '{{ secret "/secrets-oidc/GARAGE_UI_CLIENT_SECRET_HASH" }}'
+        public: false
+        authorization_policy: two_factor
+        require_pkce: true
+        pkce_challenge_method: S256
+        redirect_uris:
+          - https://garage.int.edgedatalab.com/auth/oidc/callback
+        scopes:
+          - openid
+          - email
+          - profile
+          - groups
+        response_types:
+          - code
+        grant_types:
+          - authorization_code
+        token_endpoint_auth_method: client_secret_basic
+        userinfo_signed_response_alg: none

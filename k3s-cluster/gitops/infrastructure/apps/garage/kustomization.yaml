@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - sealed-admin-token.yaml
+  - sealed-garage-ui-oidc.yaml
   - pvc-data.yaml
   - pdb.yaml
   - service-headless.yaml

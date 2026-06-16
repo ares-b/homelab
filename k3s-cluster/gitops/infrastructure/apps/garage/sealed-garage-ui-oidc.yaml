@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: garage-ui-oidc
+  namespace: garage
+spec:
+  encryptedData:
+    client-secret: AgBpIVT9iMSi8xb4Kex1tE/J6YeV3i9tFjRjxmqFSoAoZS6Bx+I8sWSUBHCqWWo+d9hc+5C++jkeFJG1x+5dOGUAbRB1gJeo6Q6Le7HQ324Ti05O8u0VaNLDYDuYgfcdCNK3wavHYSG0PmzKIxEF0GoEqeI0TR17xYU7nkA8h2u4IJf6FsYhTV5ZvEa7/ljL2+ZjBDwX0yhRunUZP6TAslc2apcXRhzyKFG1qo1aWuOCTlxwsHny8s2x0LE0Q8aLtTba7YjDX/Irn+uUVniVoZ6pQqxNchk1cQC3jACIoHrS9pDO2SADg6W6TjCnfXirftppdpBKQihoD/Gf0W4Yq3OOJFgmc/GmOYCc2nhwsbOCbNPjlEylcNmOqKTSoL+upwppzgmItycgqE18ERPwKQzo1gIA1bEi08v8YuyKpgcCq5rZw8zsMnn3O3y70cIuKBWm8mXO3kPwSc4DrTG65Bh0cjGGBcqH4VJr36p11PjFef3SwzJ0uBLuTu/x0Ech7oJBOKP4OMkoZ+Lj1o/m+pZm5Hb53wbkqhbJV8jwQhGfZyWcpArusoWTrwAWehmVzmKou31Yxcn16R4adyoNfTHioqrh+khV+vlTKGx/2JXKmd+1J7up+anZxqfMHz6WNoZkwT+0w+WgWqSZYMIpjA8byoGTyuUiF7JgCAA6RPgqRHRxkP0UvSiEsRCE2JICqwWyQcc4jRc4U2ft5pZ8WyWoccwITcyc3OhdF5EOtuT4LYOU9/9LfHVsXKBkFbC4NEUmUzaP0Wv45tVVh7rRVXqd
+  template:
+    metadata:
+      name: garage-ui-oidc
+      namespace: garage

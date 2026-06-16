@@ -27,9 +27,9 @@ spec:
     config:
       server:
         environment: production
-        domain: garage-ui.garage.svc.cluster.local
-        protocol: http
-        root_url: http://garage-ui.garage.svc.cluster.local
+        domain: garage.int.edgedatalab.com
+        protocol: https
+        root_url: https://garage.int.edgedatalab.com
       garage:
         endpoint: http://garage.garage.svc.cluster.local:3900
         region: garage
@@ -40,6 +40,24 @@ spec:
       auth:
         token:
           enabled: true
+        oidc:
+          enabled: true
+          provider_name: Authelia
+          client_id: garage-ui
+          existingSecret:
+            name: garage-ui-oidc
+            key: client-secret
+          scopes:
+            - openid
+            - email
+            - profile
+            - groups
+          issuer_url: https://auth.int.edgedatalab.com
+          skip_issuer_check: false
+          skip_expiry_check: false
+          email_attribute: email
+          username_attribute: preferred_username
+          name_attribute: name
       logging:
         level: info
         format: json
