@@ -50,6 +50,8 @@ spec:
           check_for_updates: false
         security:
           cookie_secure: true
+        users:
+          auto_assign_org_role: Admin
         auth.proxy:
           enabled: true
           header_name: Remote-User
