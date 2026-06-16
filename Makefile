@@ -20,7 +20,8 @@ INFRA_CA    = $(shell cat $(INFRA_CA_FILE) 2>/dev/null)
 PACKER_ARGS ?=
 
 .PHONY: help images image-k3s image-docker k3s-plan k3s-apply k3s-destroy k3s-bootstrap \
-        k3s-kubeconfig k3s-kubeconfig-admin k3s-garage-layout pve-init pve-bootstrap ssh-workload ssh-infra
+        k3s-kubeconfig k3s-kubeconfig-admin k3s-garage-layout k3s-drain k3s-uncordon \
+        cluster-shutdown pve-init pve-bootstrap ssh-workload ssh-infra
 
 help:
 	@echo "images               build all Packer templates"
@@ -33,6 +34,9 @@ help:
 	@echo "k3s-garage-layout    initialize garage cluster layout (idempotent)"
 	@echo "k3s-kubeconfig       write kubeconfig for K8S_USER (default: $(USER))"
 	@echo "k3s-kubeconfig-admin fetch raw admin kubeconfig (emergency use only)"
+	@echo "k3s-drain            drain worker nodes before shutdown"
+	@echo "k3s-uncordon         uncordon worker nodes after startup"
+	@echo "cluster-shutdown     drain workers, shutdown all k3s VMs, then PVE host"
 	@echo "pve-init             generate host secrets (ansible init.yml)"
 	@echo "pve-bootstrap        configure the host (ansible site.yml)"
 	@echo "ssh-workload         sign SSH cert for k3s nodes  (SSH_PRINCIPAL=$(USER))"
@@ -126,6 +130,24 @@ ssh-workload:
 
 ssh-infra:
 	SOPS_AGE_KEY_FILE=$(SOPS_AGE_KEY_FILE) ssh-ca/sign.sh infra $(SSH_PRINCIPAL) 1h $(SSH_PUBKEY)
+
+k3s-drain:
+	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl drain k3s-worker-01 --ignore-daemonsets --delete-emptydir-data --timeout=120s
+	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl drain k3s-worker-02 --ignore-daemonsets --delete-emptydir-data --timeout=120s
+
+k3s-uncordon:
+	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl uncordon k3s-worker-01
+	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl uncordon k3s-worker-02
+
+cluster-shutdown: k3s-drain
+	@echo "Shutting down k3s nodes..."
+	ssh ops@10.0.0.11 "sudo shutdown -h now" || true
+	ssh ops@10.0.0.12 "sudo shutdown -h now" || true
+	ssh ops@10.0.0.10 "sudo shutdown -h now" || true
+	@echo "Waiting 60s for VMs to power off..."
+	@sleep 60
+	@echo "Shutting down PVE host..."
+	ssh ansible@REDACTED_PVE_IP "sudo shutdown -h now"
 
 pve-init:
 	cd pve-bootstrap && $(ANSIBLE) init.yml
