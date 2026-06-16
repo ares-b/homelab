@@ -28,7 +28,7 @@ spec:
             - --config
             - /config/configuration.yml
             - --config
-            - /secrets-oidc/jwks.yaml
+            - /secrets-oidc/oidc.yaml
           ports:
             - name: http
               containerPort: 9091
@@ -48,8 +48,6 @@ spec:
               value: /secrets-smtp/password
             - name: AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE
               value: /secrets-oidc/OIDC_HMAC_SECRET
-            - name: AUTHELIA_IDENTITY_PROVIDERS_OIDC_CLIENTS_0_CLIENT_SECRET_FILE
-              value: /secrets-oidc/GARAGE_UI_CLIENT_SECRET_HASH
           volumeMounts:
             - name: config
               mountPath: /config/configuration.yml
