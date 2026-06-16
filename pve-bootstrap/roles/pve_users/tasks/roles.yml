@@ -5,6 +5,7 @@
   when:
     - state == 'present'
     - role.name not in pveum_existing_roles
+  changed_when: true
 
 - name: "PVE Roles | Update privs on existing role {{ role.name }}"
   vars:
@@ -16,14 +17,18 @@
         | first
         | default('')
         | split(',')
+        | map('trim')
+        | reject('equalto', '')
         | sort
+        | list
       }}
   ansible.builtin.command:
     cmd: "pveum role modify {{ role.name }} --privs '{{ role.privs | join(',') }}'"
   when:
     - state == 'present'
     - role.name in pveum_existing_roles
-    - _current_privs != (role.privs | sort)
+    - _current_privs != (role.privs | sort | list)
+  changed_when: true
 
 - name: "PVE Roles | Remove custom role {{ role.name }}"
   ansible.builtin.command:
@@ -31,3 +36,4 @@
   when:
     - state == 'absent'
     - role.name in pveum_existing_roles
+  changed_when: true

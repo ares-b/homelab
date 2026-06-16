@@ -3,7 +3,7 @@ state: present
 pve_notifications_enabled: true
 
 pve_notifications_mail_to: ""
-pve_notifications_mail_from: "{{ pve_notifications_smtp_user if pve_notifications_smtp_user != '' else 'root@' + ansible_fqdn }}"
+pve_notifications_mail_from: "{{ pve_notifications_smtp_user if pve_notifications_smtp_user != '' else 'root@' + ansible_facts['fqdn'] }}"
 
 pve_notifications_smtp_host: ""
 pve_notifications_smtp_port: 587

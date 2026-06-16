@@ -11,7 +11,7 @@ pve_common_linux_users:
     groups:
       - sudo
     ssh_authorized_keys:
-      - "{{ lookup('file', '~/.ssh/id_ed25519.pub') }}"
+      - "{{ pve_ansible_ssh_pub_key }}"
 
   - name: ansible
     state: present
@@ -110,6 +110,7 @@ pve_users_custom_roles:
       - VM.Audit           # read VM config (required for state reads)
       - VM.GuestAgent.Audit # read IP via guest agent after boot
       - Sys.Audit          # read node and storage status (bpg provider)
+      - Sys.Modify         # required to create LXC containers
       # VM config - only what Terraform actually sets
       - VM.Config.CDROM    # cloud-init drive is a CDROM-type device
       - VM.Config.Cloudinit
@@ -122,8 +123,9 @@ pve_users_custom_roles:
       # Network - required when the bridge is in an SDN zone (vmbr10)
       - SDN.Use
       # Storage
-      - Datastore.Allocate       # create/remove the cloud-init snippet volume
+      - Datastore.Allocate          # create/remove the cloud-init snippet volume
       - Datastore.AllocateSpace
+      - Datastore.AllocateTemplate  # download LXC/VM templates
       - Datastore.Audit
 
   - name: PackerBuilder
