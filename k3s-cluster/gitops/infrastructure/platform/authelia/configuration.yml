@@ -58,6 +58,11 @@ notifier:
 
 identity_providers:
   oidc:
+    jwks:
+      - key_id: main
+        algorithm: RS256
+        use: sig
+        key: '{{ secret "/secrets-oidc/OIDC_PRIVATE_KEY" }}'
     clients:
       - client_id: garage-ui
         client_name: Garage UI
