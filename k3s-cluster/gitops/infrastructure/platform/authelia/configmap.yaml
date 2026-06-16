@@ -52,5 +52,7 @@ data:
         path: /data/db.sqlite3
 
     notifier:
-      filesystem:
-        filename: /tmp/notification.txt
+      smtp:
+        address: submission://REDACTED_SMTP_HOST:587
+        sender: "Authelia <noreply@edgedatalab.com>"
+        subject: "[Authelia] {title}"

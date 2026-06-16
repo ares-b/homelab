@@ -9,3 +9,4 @@ resources:
   - middleware.yaml
   - ingressroute.yaml
   - sealed-authelia-users.yaml
+  - sealed-authelia-smtp.yaml

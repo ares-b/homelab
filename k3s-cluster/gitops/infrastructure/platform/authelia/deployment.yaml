@@ -34,6 +34,13 @@ spec:
               value: /secrets/SESSION_SECRET
             - name: AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE
               value: /secrets/STORAGE_ENCRYPTION_KEY
+            - name: AUTHELIA_NOTIFIER_SMTP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: authelia-smtp
+                  key: username
+            - name: AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
+              value: /secrets-smtp/password
           volumeMounts:
             - name: config
               mountPath: /config/configuration.yml
@@ -46,6 +53,9 @@ spec:
               readOnly: true
             - name: data
               mountPath: /data
+            - name: secrets-smtp
+              mountPath: /secrets-smtp
+              readOnly: true
           readinessProbe:
             httpGet:
               path: /api/health
@@ -90,3 +100,9 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: authelia-data
+        - name: secrets-smtp
+          secret:
+            secretName: authelia-smtp
+            items:
+              - key: password
+                path: password
