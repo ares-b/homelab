@@ -46,7 +46,12 @@ spec:
           reporting_enabled: false
           check_for_updates: false
         security:
-          cookie_secure: false
+          cookie_secure: true
+        auth.proxy:
+          enabled: true
+          header_name: Remote-User
+          header_property: username
+          auto_sign_up: true
       additionalDataSources:
         - name: Loki
           type: loki

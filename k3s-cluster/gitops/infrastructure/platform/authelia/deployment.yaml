@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authelia
+  namespace: authelia
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: authelia
+  template:
+    metadata:
+      labels:
+        app: authelia
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
+      containers:
+        - name: authelia
+          image: ghcr.io/authelia/authelia:4.39.20
+          ports:
+            - name: http
+              containerPort: 9091
+          env:
+            - name: AUTHELIA_JWT_SECRET_FILE
+              value: /secrets/JWT_SECRET
+            - name: AUTHELIA_SESSION_SECRET_FILE
+              value: /secrets/SESSION_SECRET
+            - name: AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE
+              value: /secrets/STORAGE_ENCRYPTION_KEY
+          volumeMounts:
+            - name: config
+              mountPath: /config/configuration.yml
+              subPath: configuration.yml
+            - name: users
+              mountPath: /config/users.yaml
+              subPath: users.yaml
+            - name: secrets
+              mountPath: /secrets
+              readOnly: true
+            - name: data
+              mountPath: /data
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 9091
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 9091
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+      volumes:
+        - name: config
+          configMap:
+            name: authelia
+        - name: users
+          secret:
+            secretName: authelia
+            items:
+              - key: users.yaml
+                path: users.yaml
+        - name: secrets
+          secret:
+            secretName: authelia
+            items:
+              - key: JWT_SECRET
+                path: JWT_SECRET
+              - key: SESSION_SECRET
+                path: SESSION_SECRET
+              - key: STORAGE_ENCRYPTION_KEY
+                path: STORAGE_ENCRYPTION_KEY
+        - name: data
+          persistentVolumeClaim:
+            claimName: authelia-data

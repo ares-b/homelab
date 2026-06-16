@@ -1,0 +1,20 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: authelia
+  namespace: authelia
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`auth.int.edgedatalab.com`)
+      kind: Rule
+      services:
+        - name: authelia
+          port: 9091
+  tls:
+    certResolver: letsencrypt
+    domains:
+      - main: int.edgedatalab.com
+        sans:
+          - "*.int.edgedatalab.com"

@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: traefik-cloudflare
+  namespace: kube-system
+spec:
+  encryptedData:
+    api-token: AgBlmi02yBwE3ejBbRiShusKMuaxaSo2eYXgMcb8Oe9xyisAVz2YqpK2D4E7LpItiLz4JOwWDKfVFU+C2+ZBUrUvDwWoYhUgdmlG7U8XV63xfNG48nVONQ7NDGm3w9iwQHxTHr1vTUSs9lxRUW9BHJ5uFPOSJrjv1GoFLVQttQelZTKVz6BGzWZg9p6vGzfmkecMxVon59GMrxwKq5Hqm6uKk+Tte2VbCq1uchn5+oaDubT2HlWcIgspEy1SCvnl7/X+qmCwOJ8MoB/9oppHwSk5uG5ZGnv4Y5lQSoZm7bry/kLoxEyHutkmHDLk5nWO0dqynUakD/aS/U0rlHh/HN+j3rMl6bsnWKIoOHGKVB99TpRskoq7MtLUoB/odq5efwenlCgLZUuB9uy/ChYkJHTj7wfFFab/cjyEusAoJ3rNfSsl4PBV6PJM4qcZ6mN2xpyxt3zIWv7EH3dnKXE1byXwZsvKq1Er7LfyPxTeGWLHgFx4blDWThgWL1gX7OONC1BD7OP/bWVzUSahu5wmwh7NDmqUoS5oIkKhVYERZQk2lSQRHohwG9yMIvhH07qRh0GiBYLqfAwc5buR0RD++XWvQdtMbGgQ/7/KKDgWU86m201Lo/W0DHXSepYI/sDgnl6qWz4YOstrLAtnBOiqLFNM0wvuVSZJwj2I8fPD0ZW+dsRqr9xCqoGAfLouSyYx+YWoqMZPVcQ+oeqrZnuKaUPzcIBhReV6A0eX12uc0pb9qBfxs7f0GxMVwyKu0bk9VzAyNOFZHQ==
+  template:
+    metadata:
+      name: traefik-cloudflare
+      namespace: kube-system
