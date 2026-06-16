@@ -54,5 +54,5 @@ data:
     notifier:
       smtp:
         address: submission://REDACTED_SMTP_HOST:587
-        sender: "Authelia <noreply@edgedatalab.com>"
-        subject: "[Authelia] {title}"
+        sender: "EdgeDatalab <noreply@edgedatalab.com>"
+        subject: "[EdgeDatalab] {title}"
