@@ -84,5 +84,5 @@ spec:
       create: true
 
     dagster-user-deployments:
-      enabled: false
+      enableSubchart: false
       deployments: []
