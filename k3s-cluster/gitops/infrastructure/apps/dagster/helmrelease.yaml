@@ -83,6 +83,6 @@ spec:
     serviceAccount:
       create: true
 
-    userDeployments:
-      enabled: true
+    dagster-user-deployments:
+      enabled: false
       deployments: []
