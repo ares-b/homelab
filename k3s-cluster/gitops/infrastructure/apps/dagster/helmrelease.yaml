@@ -7,9 +7,11 @@ spec:
   interval: 1h
   targetNamespace: dagster
   install:
+    timeout: 15m
     remediation:
       retries: 3
   upgrade:
+    timeout: 15m
     remediation:
       retries: 3
   chart:

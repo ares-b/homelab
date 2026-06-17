@@ -5,3 +5,4 @@ resources:
   - cluster.yaml
   - dagster-database.yaml
   - sealed-dagster-cnpg-role.yaml
+  - cnpg-secret-rbac.yaml
