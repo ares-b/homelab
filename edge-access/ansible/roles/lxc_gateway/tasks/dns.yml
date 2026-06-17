@@ -15,6 +15,22 @@
     mode: "0644"
   notify: Restart dnsmasq
 
+- name: LXC Gateway | DNS | Create systemd override dir for dnsmasq
+  ansible.builtin.file:
+    path: /etc/systemd/system/dnsmasq.service.d
+    state: directory
+    mode: "0755"
+
+- name: LXC Gateway | DNS | Override dnsmasq to start after wg0
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/dnsmasq.service.d/after-wg0.conf
+    mode: "0644"
+    content: |
+      [Unit]
+      After=wg-quick@wg0.service
+      Wants=wg-quick@wg0.service
+  notify: Restart dnsmasq
+
 - name: LXC Gateway | DNS | Enable and start dnsmasq
   ansible.builtin.systemd:
     name: dnsmasq
