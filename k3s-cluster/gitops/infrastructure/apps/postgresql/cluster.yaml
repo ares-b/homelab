@@ -23,5 +23,14 @@ spec:
     limits:
       cpu: "1"
       memory: 1Gi
+  managed:
+    roles:
+      - name: dagster
+        ensure: present
+        login: true
+        createdb: false
+        superuser: false
+        passwordSecret:
+          name: dagster-cnpg-role
   monitoring:
     enablePodMonitor: true

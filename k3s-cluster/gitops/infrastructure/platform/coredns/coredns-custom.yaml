@@ -10,6 +10,7 @@ data:
         10.43.138.80 auth.int.edgedatalab.com
         10.43.138.80 garage.int.edgedatalab.com
         10.43.138.80 grafana.int.edgedatalab.com
+        10.43.138.80 dagster.int.edgedatalab.com
         fallthrough
       }
       forward . /etc/resolv.conf

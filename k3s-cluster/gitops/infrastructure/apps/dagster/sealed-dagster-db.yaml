@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: dagster-postgresql-secret
+  namespace: dagster
+spec:
+  encryptedData:
+    postgresql-password: AgCGZdBfYrN3l6HqcTV76QYvcZH4ek7JL7IQgPM56DR2TIhriW49kqh0UmPOqKVOTqpIQbzVBVf8oHyD1ejEAcELLANN+b/2/RBMdiXErOGduxAVqrhPggot2YFho9I/njjE5VohNfOW7AIe0tLyZ9hPkYN21oF/9cNx5pavJ4+vyPX+Q0bEltmmImc/7WiU2icXETe4sxz9EOCET1cAD2I1bCKbCk2S0/TFukV5U9BU+y2yA5B8bKDBb0c0/X0lJuYYdh84Nn+gU1Dob6hiDis3ucMOkc3WIqQwpbzs1RHbDDgVGQs7dVKiiIuyJUQOcdBe5IVi1F0JQQRS/ls0puRGzOO56FWD9KauZuXGWt0JyIr+FqXubF6ihGZfyOKe8zPlniirE+BFMuhdIm7WQ/FA4+vqcU+MfGzPDhjTrG/Seo2CMF9oRg0eri8b60Ol6FDL+FX/hMmqlZjUscBmR23NkdjItEvGaHwMNB42cIWt+E41iYkWzD5K1NRw8g2FRcvJNLCIfCYaEOpYznbwrzh99ybCyp3V0img8m7Tq5y8qZMkVcnwiDLm8v235etZ3ehxvfOlummlWVNzz7itl8v5o1Y8JfsapFO/apU3+UrlBT35jFnCw8SCDyUHMyTcL7qDZ90T6zG7TjkNehPT6wt/DDaf4uHDqf0W7s9qAFWUudZbKb4kX5JtRyCA45catlQey4sWKLINUDyWSjppjqrvpiPxSRK+gvLexhnKVrj/V5NhLDhnmGQOPTmX
+  template:
+    metadata:
+      name: dagster-postgresql-secret
+      namespace: dagster

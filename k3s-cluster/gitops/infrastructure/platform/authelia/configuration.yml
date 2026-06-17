@@ -29,6 +29,12 @@ access_control:
     - domain: garage.int.edgedatalab.com
       subject: group:admins
       policy: two_factor
+    - domain: dagster.int.edgedatalab.com
+      subject:
+        - group:admins
+        - group:developers
+      policy: two_factor
+
     - domain: auth.int.edgedatalab.com
       policy: bypass
 

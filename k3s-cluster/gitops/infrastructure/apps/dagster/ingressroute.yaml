@@ -1,0 +1,19 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: dagster
+  namespace: dagster
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`dagster.int.edgedatalab.com`)
+      kind: Rule
+      middlewares:
+        - name: forwardauth
+          namespace: authelia
+      services:
+        - name: dagster-webserver
+          port: 80
+  tls:
+    certResolver: letsencrypt

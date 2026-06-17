@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: dagster-cnpg-role
+  namespace: postgresql
+spec:
+  encryptedData:
+    password: AgCxGQG6ZyvstB7HKbEoQfci6bOs+IoRZ2uYhLFH5zJJEvQjS1NEp/nMi2pvJkCtgNCR8gCOitjXund3vo+eSe7eMwAtNXJhLx1ckKBWm2TXo7nnCwjWmlKRZQFsXfi4bjfIUe8fqZy4pq4yfVaP4zkezkJ/lL/gpExpZOlAhzoM3ZjXDSQCSNp/loJLQDuGnTgUgC4oAcG5j6FZYoqO76p4aq/3ehLu71L8NtYZxo8O1xbAPCXI5bQj2SbSTD41cbQYFQpHXhLcOSUYDBtCeLHU4m5HrhjM/WA3C5oiH1pbYArPxFPUWpZXPzsgRrAje4nMEDBdho/Dll3GQeiGoEBh8ml3UNU3bUXSzV82K2tN9teWE0dQKtDaQ8aXPiDc4PaoW/AV8tJukYq5uHxNvENhIOhpeSy31qe+BkFmtf0XxAiSgzei7fOS0HLV/XWxid5vCmWhtGtzzPgHjpRzrwvaAVZ6a6l6WtyTVXbffBNnBV2Wp6QPOQOJNBFieUAqj5wF4kltOghxMqXQIUzJYbYrneTzs6NVtqQpE6B+/J8dWy2fDIj2Vc3bbfNZlK7SZH4IUMEF6pHobpmrNB5sUNA/sPHwxDpxC/akcij6aYHH1bCvaREnTgg0dZY5n45O4S4fLTIjrs1ErUH2H2WKs6bE8bvIWqnkJo8ptELp6QVs1+AtNdyGsA/Zyc4C2KvLmJX5Mn4wrurE/dFreHziIJjePH2VyIKMrFKBAkyIURDz3KOeUDMcbz6ztIbK
+  template:
+    metadata:
+      name: dagster-cnpg-role
+      namespace: postgresql
