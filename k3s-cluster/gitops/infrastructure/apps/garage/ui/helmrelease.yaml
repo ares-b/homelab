@@ -72,3 +72,27 @@ spec:
         memory: 256Mi
     serviceMonitor:
       enabled: false
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: Deployment
+              name: garage-ui
+            patch: |
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: garage-ui
+              spec:
+                template:
+                  spec:
+                    initContainers:
+                      - name: wait-for-authelia
+                        image: curlimages/curl:8
+                        command:
+                          - sh
+                          - -c
+                          - |
+                            until curl -sf https://auth.int.edgedatalab.com/.well-known/openid-configuration > /dev/null; do
+                              sleep 5
+                            done
