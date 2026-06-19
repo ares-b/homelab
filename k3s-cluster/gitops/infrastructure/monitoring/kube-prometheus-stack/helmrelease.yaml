@@ -51,7 +51,7 @@ spec:
         security:
           cookie_secure: true
         users:
-          auto_assign_org_role: Admin
+          auto_assign_org_role: Viewer
         auth.proxy:
           enabled: true
           header_name: Remote-User
