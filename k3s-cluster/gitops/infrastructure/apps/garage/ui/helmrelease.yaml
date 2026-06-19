@@ -72,22 +72,3 @@ spec:
         memory: 256Mi
     serviceMonitor:
       enabled: false
-  postRenderers:
-    - kustomize:
-        patches:
-          - target:
-              kind: Deployment
-              labelSelector: "app.kubernetes.io/name=garage-ui"
-            patch: |
-              - op: add
-                path: /spec/template/spec/initContainers
-                value:
-                  - name: wait-for-authelia
-                    image: curlimages/curl:8
-                    command:
-                      - sh
-                      - -c
-                      - |
-                        until curl -sf https://auth.int.edgedatalab.com/.well-known/openid-configuration > /dev/null; do
-                          sleep 5
-                        done
