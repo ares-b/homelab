@@ -13,7 +13,7 @@ spec:
         - name: forwardauth
           namespace: authelia
       services:
-        - name: dagster-webserver
+        - name: dagster-dagster-dagster-webserver
           port: 80
   tls:
     certResolver: letsencrypt
