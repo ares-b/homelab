@@ -77,7 +77,7 @@ spec:
         patches:
           - target:
               kind: Deployment
-              name: garage-garage-ui
+              labelSelector: "app.kubernetes.io/name=garage-ui"
             patch: |
               apiVersion: apps/v1
               kind: Deployment
