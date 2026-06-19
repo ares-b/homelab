@@ -79,20 +79,15 @@ spec:
               kind: Deployment
               labelSelector: "app.kubernetes.io/name=garage-ui"
             patch: |
-              apiVersion: apps/v1
-              kind: Deployment
-              metadata:
-                name: garage-garage-ui
-              spec:
-                template:
-                  spec:
-                    initContainers:
-                      - name: wait-for-authelia
-                        image: curlimages/curl:8
-                        command:
-                          - sh
-                          - -c
-                          - |
-                            until curl -sf https://auth.int.edgedatalab.com/.well-known/openid-configuration > /dev/null; do
-                              sleep 5
-                            done
+              - op: add
+                path: /spec/template/spec/initContainers
+                value:
+                  - name: wait-for-authelia
+                    image: curlimages/curl:8
+                    command:
+                      - sh
+                      - -c
+                      - |
+                        until curl -sf https://auth.int.edgedatalab.com/.well-known/openid-configuration > /dev/null; do
+                          sleep 5
+                        done
