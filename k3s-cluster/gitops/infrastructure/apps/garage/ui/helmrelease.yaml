@@ -77,12 +77,12 @@ spec:
         patches:
           - target:
               kind: Deployment
-              name: garage-ui
+              name: garage-garage-ui
             patch: |
               apiVersion: apps/v1
               kind: Deployment
               metadata:
-                name: garage-ui
+                name: garage-garage-ui
               spec:
                 template:
                   spec:
