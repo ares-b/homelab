@@ -2,5 +2,6 @@
 # Post-apply node configuration. Run via `make -C k3s-cluster configure`,
 # which waits for SSH first. Kubernetes users are managed separately by
 # Terraform: `make -C k3s-cluster users-apply`.
+- import_playbook: node-prep.yml
 - import_playbook: disk-setup.yml
 - import_playbook: k8s-nodes.yml

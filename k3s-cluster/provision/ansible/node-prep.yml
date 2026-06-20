@@ -1,0 +1,14 @@
+---
+- name: Prepare k3s node host directories
+  hosts: k3s
+  become: true
+  gather_facts: false
+  tasks:
+    # topolvm's CSI plugin races to register its socket here on kubelet start;
+    # pre-creating the dir avoids the registration race. Lives in Ansible (not
+    # cloud-init) so it applies to existing nodes, not just freshly built ones.
+    - name: Ensure kubelet plugins_registry directory exists
+      ansible.builtin.file:
+        path: /var/lib/kubelet/plugins_registry
+        state: directory
+        mode: "0750"
