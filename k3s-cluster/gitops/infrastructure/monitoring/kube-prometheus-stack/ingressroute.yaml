@@ -17,3 +17,23 @@ spec:
           port: 80
   tls:
     certResolver: letsencrypt
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: prometheus
+  namespace: monitoring
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`prometheus.int.edgedatalab.com`)
+      kind: Rule
+      middlewares:
+        - name: forwardauth
+          namespace: authelia
+      services:
+        - name: monitoring-kube-prometheus-prometheus
+          port: 9090
+  tls:
+    certResolver: letsencrypt

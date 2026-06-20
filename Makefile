@@ -148,7 +148,7 @@ cluster-shutdown: k3s-drain
 	@echo "Waiting 60s for VMs to power off..."
 	@sleep 60
 	@echo "Shutting down PVE host..."
-	ssh ansible@REDACTED_PVE_IP "sudo shutdown -h now"
+	ssh REDACTED_PVE_IP "sudo shutdown -h now"
 
 pve-init:
 	cd pve-bootstrap && $(ANSIBLE) init.yml

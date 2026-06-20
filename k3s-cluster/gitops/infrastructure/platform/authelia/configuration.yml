@@ -28,6 +28,9 @@ access_control:
         - group:admins
         - group:developers
       policy: two_factor
+    - domain: prometheus.int.edgedatalab.com
+      subject: group:admins
+      policy: two_factor
     - domain: garage.int.edgedatalab.com
       subject: group:admins
       policy: two_factor
