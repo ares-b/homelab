@@ -42,7 +42,9 @@ spec:
           imagePullPolicy: IfNotPresent
           jobNamespace: dagster
           envSecrets:
-            - name: dagster-s3-secret
+            - name: s3-raw-secret
+            - name: s3-master-secret
+            - name: s3-product-secret
           resources:
             requests:
               cpu: 250m

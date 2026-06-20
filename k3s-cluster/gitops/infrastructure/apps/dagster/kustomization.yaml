@@ -6,4 +6,6 @@ resources:
   - helmrelease.yaml
   - ingressroute.yaml
   - sealed-dagster-db.yaml
-  - sealed-dagster-s3.yaml
+  - sealed-s3-raw-secret.yaml
+  - sealed-s3-master-secret.yaml
+  - sealed-s3-product-secret.yaml

@@ -1,6 +1,7 @@
 WORKLOAD_CA_FILE  := ssh-ca/workload/ca.pub
 INFRA_CA_FILE     := ssh-ca/infra/ca.pub
 TF_DIR            := k3s-cluster/provision/production
+GARAGE_TF_DIR     := k3s-cluster/resources/garage
 ANSIBLE           ?= ansible-playbook
 SOPS_EXEC         := python3 $(CURDIR)/scripts/sops-exec.py
 SSH_PRINCIPAL     ?= $(USER)
@@ -21,7 +22,8 @@ PACKER_ARGS ?=
 
 .PHONY: help images image-k3s image-docker k3s-plan k3s-apply k3s-destroy k3s-bootstrap \
         k3s-kubeconfig k3s-kubeconfig-admin k3s-garage-layout k3s-drain k3s-uncordon \
-        cluster-shutdown pve-init pve-bootstrap ssh-workload ssh-infra
+        cluster-shutdown pve-init pve-bootstrap ssh-workload ssh-infra \
+        garage-plan garage-apply garage-destroy
 
 help:
 	@echo "images               build all Packer templates"
@@ -41,6 +43,9 @@ help:
 	@echo "pve-bootstrap        configure the host (ansible site.yml)"
 	@echo "ssh-workload         sign SSH cert for k3s nodes  (SSH_PRINCIPAL=$(USER))"
 	@echo "ssh-infra            sign SSH cert for PVE host   (SSH_PRINCIPAL=$(USER))"
+	@echo "garage-plan          terraform plan for garage buckets/keys"
+	@echo "garage-apply         terraform apply  (port-forwards admin API, creates sealed secrets)"
+	@echo "garage-destroy       terraform destroy garage buckets/keys"
 
 $(WORKLOAD_CA_FILE) $(INFRA_CA_FILE):
 	@echo "missing $@; generate the CA first (see ssh-ca/README.md)" >&2; exit 1
@@ -149,6 +154,15 @@ cluster-shutdown: k3s-drain
 	@sleep 60
 	@echo "Shutting down PVE host..."
 	ssh REDACTED_PVE_IP "sudo shutdown -h now"
+
+garage-init:
+	cd $(GARAGE_TF_DIR) && terraform init
+
+garage-plan garage-apply garage-destroy:
+	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl port-forward svc/garage 3903:3903 -n garage & \
+	PF_PID=$$!; sleep 2; \
+	cd $(GARAGE_TF_DIR) && sops exec-file secrets.sops.yaml '$(SOPS_EXEC) {} TF_VAR_ sh -c "stty sane; terraform $(subst garage-,,$@)"'; \
+	kill $$PF_PID 2>/dev/null || true
 
 pve-init:
 	cd pve-bootstrap && $(ANSIBLE) init.yml
