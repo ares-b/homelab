@@ -11,14 +11,11 @@ Terraform provisions a k3s cluster on Proxmox from the `ubuntu-k3s` Packer templ
 ## Usage
 
 ```sh
-cp terraform.tfvars.example terraform.tfvars
-# edit terraform.tfvars
-
 make k3s-plan    # from repo root
 make k3s-apply
 ```
 
-Always run through `make` — it injects the SSH CA public key from `ssh-ca/workload/ca.pub`. A bare `terraform apply` is rejected.
+Secrets are injected from the root `config.sops.yaml` (k3s_provision section). Always run through `make` — it injects both the sops secrets and the SSH CA public key from `ssh-ca/workload/ca.pub`. A bare `terraform apply` is rejected.
 
 After apply:
 

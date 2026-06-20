@@ -127,7 +127,7 @@
           ansible.builtin.copy:
             dest: "{{ config_file }}"
             mode: "0600"
-            content: "{{ _cfg | combine({'wireguard': _cfg.wireguard | combine({'lxc_pubkey': hostvars['edge-gateway']['lxc_wg_pubkey']})}, recursive=true) | to_nice_yaml(width=4096) }}"
+            content: "{{ _cfg | combine({'edge_access': _cfg.edge_access | combine({'wireguard': _cfg.edge_access.wireguard | combine({'lxc_pubkey': hostvars['edge-gateway']['lxc_wg_pubkey']})}, recursive=true)}, recursive=true) | to_nice_yaml(width=4096) }}"
           no_log: true
 
         - name: Encrypt config

@@ -5,13 +5,15 @@ import sys
 
 import yaml
 
-if len(sys.argv) < 4:
-    sys.exit(f"usage: {sys.argv[0]} <yaml-file> <VAR_PREFIX> <cmd> [args...]")
+if len(sys.argv) < 5:
+    sys.exit(f"usage: {sys.argv[0]} <yaml-file> <VAR_PREFIX> <section> <cmd> [args...]")
 
-yaml_file, prefix, *cmd = sys.argv[1:]
+yaml_file, prefix, section, *cmd = sys.argv[1:]
 
 with open(yaml_file) as f:
-    data = yaml.safe_load(f) or {}
+    config = yaml.safe_load(f) or {}
+
+data = {**config.get("common", {}), **config.get(section, {})}
 
 env = os.environ.copy()
 for k, v in data.items():

@@ -1,0 +1,165 @@
+common:
+    gateway: 10.0.0.1
+    nameserver: 1.1.1.1
+    network_bridge: vmbr10
+    pve_host: REDACTED_PVE_IP
+    pve_node: pve01
+edge_access:
+    dns:
+        domain: int.edgedatalab.com
+    k3s:
+        ingress_http_port: 80
+        ingress_https_port: 443
+        ingress_ips:
+            - 10.0.0.10
+            - 10.0.0.11
+            - 10.0.0.12
+    lxc:
+        ansible_ssh_private_key: ENC[AES256_GCM,data:bkSYbDvz3bQa+UfS07QOxks9a9hBnuGYeTSjE/Ruj1Q0zMbN46JhqD3iqbgakbpHcIwd7/6U5S8oVRI4g7tW/Qo2qagKGXK+sk4fctpOBibdrSRW9Tj9IktQ6LTwZb8BUe/wGe6DJTkxO7Gc/ncbIv06Z0A5wzO/5yiI0sN0DeW2Pe3JhhOkZgtxSX7vXYOhLriJamuxeGwyH/DARLnLlbgboAOpeBP2sqrLeLQH1HnM6Blk8uDJEofEJfg4hxo325uiEh4F0YfzIcvj2sFodYIhqVj6j0nkpfTDxl4HhikIjBWFSEdodEwXl3dEIKeCq6PrqusK2LvGgfZShIWFNsv3583fUKRBzf7jgKXkwlbN3xzJaF2p/rpO4jgXMn/Pphx4YViz63nKZHUMBiogL3bOd2wMmSHC8cUBSZY/gDMNAM+NBVlp4jz0GXoQlL2axqzvSmnTYweTmu4f4NrragY245p3ZpYQJ+OftswK5KPUxA7Na3OfqiQjLrNeqPIPDyvM4Cryu8U8hCJMxHA6QuHpQrx75pitmQn6SfSvd4FnzQLZy0y+Xop5SkGTrzDQKatmBt3LT17230BtUPeC884Vx16bu/B1NdZiIeEtTiu+udcMWCivGA5mNDP9pe/HsMdSyMql0g7jsdVc7Etg0Mb6OKBofSFafUHlGy21eE7Qthr8D78rUCdoE8+vcQaLq3A1mtuJnCcLNixUTElCOUzWRqM=,iv:uuJsvuk52UaxK7wgvEI5fTE0/yWSKLp28CQD1AZAZpY=,tag:OPzczC8lS1Z8HR4JCQzJQA==,type:str]
+        bridge: vmbr10
+        cpus: 1
+        disk_size: 4
+        gateway: 10.0.0.1
+        hostname: edge-gateway
+        ip: 10.0.0.200/24
+        memory: 512
+        ssh_public_key: REDACTED_SSH_PUBKEY
+        ssh_user: root
+        storage: local-lvm
+        vmid: 200
+    nginx:
+        public_whitelist: []
+    proxmox:
+        api_token: ENC[AES256_GCM,data:bBvam4HUcOVbxyuYHi7icHtDuRQVCUrzTBZLKfqMaVjI5BH4h1HnVjOXbDxNG1IKhdN7CTyUaknamb0/9TPjpoXC,iv:yaZcsdCo87zBaI5CCrP4GRFdULqNpNPB+96cxDlIk+U=,tag:5MWusSj3zdfojKuw22pV8g==,type:str]
+        endpoint: https://REDACTED_PVE_IP:8006/
+        insecure: true
+        node: pve01
+        ssh_private_key: ENC[AES256_GCM,data:ow5itH7IpCMFKLwfrXLsKX/3f8ViS5vhfNle97d7Hl2OuvAh5AiIBVsU5GT6DOghfkSOS+b3K2GCHpCT71hY5lr9lPqPvaUkffyqxm9KfTAM7Qm+JKbmsC5KZch4G04H5FgYuBr16+2v/ngMecEcVA2HVWjOreC2zsdXorTeSMiNATt6tRY8iDkNY18ZArskNOvy5hL4ovvt+e9xzyXxeWBVOfVGZGaFX+tBWTxYvFomjNLEWM8nFO4RCT+L5FT2YNDnaXa4OGrjQjvFSaN4cfk0zGP/3liROmbnPg4DTb2uSvjMIsDBEb3d/u1V6IPm+w3QulOs253k9arDA18OSBhqi9Scx+aGn7F2nCzU5JI+c5pdw1a7aIX/usW3p5tP1bxvLbrEV7SLL5PRa0Gi64zEBDoE2Xmda+O04NJWadaDl4bb+L7jRrlq44xdyQSLZs5QnTO8iVfEzccCb2aY07Q7XZSAC9KSi+YtTv4L0jQVHLdYX7jJpPHAMVWERgUdejwNTxqRBPonhAMJgkAsxOVhYiJVoS0QNkvCK2AtdFqSmtmTyhFEq1lLO+f+sDSDY/FG2apu7VnYpVD8RSVyGvcm0BXFwRvpkO4uIlwQF8MPWqV8Ky/9AGttnrQNtDQCapfjq0sT51igXDbXMlbiA4oahppFRGUTQHl/rfUk32qAgBrQjmvDR024Pqgh9QhLOc1mDQ==,iv:q+nD6cQ2v7vCAuua+HHmUKVAnMRiAlRUV1GtA+/Jn8M=,tag:4ILvPrUi6knXmjMp9uXjxg==,type:str]
+        ssh_user: ansible
+    vps:
+        public_ip: REDACTED_VPS_IP
+        ssh_private_key: ENC[AES256_GCM,data:EWK9EJyPe/Q1atHyOJaMlf3QkH1zT6P6AGcbe5xVIQvHRnRjt0OAd9zIzmyyAfa1Yb+yOpYtVflTPDuhKC0bvh1VFeM45JeU8KE5UnjZFAnJdYEMnNl9O4WEI/ZoDwyRQx4u1CcfpU+iUKcsB0SgarNOih51j6OYMVdoNMS6tqsGB8W1lUAjmTgN0JC3LQibdNRz5ppXiGDnMK5c+TeQjgLlItvxp7mmEdFYYLFHk+FcI9Ybhkd6ndbcytUtQ2Kauec+vId149o0rcx72LxavzuSrFUV8Rz6Qzh7k4eA5HNPUP6S8UZJZBtq1g0M1CTJKI8N8Ql+AQne9kQ14Ws/qygvkWKWDes6cEHfi6ZsQxEk6yzIxMy7HHH9T40MI+fG0eawBHOgeVhPzSyun3Xue0bVY77F+TQALbs/wVQ8/GuHCdMeuHNrpiVQxhHG093kDNvLlpxcoAVZC+oU5w3TwWJzOkUY2kUUXGoQc9Taaa8slGDA8yZmXyZs9JfcbuXgAEg1Px9pt7G+GD5jz3RUkCmD2B2SBash+dQHI6GE9+N94mhSxgMJ5YzVTYFFn0NOge5ecRKClKrJxCK4rldzJGhfKEUbixvu9jIyJUCn4eXWu1cz+83oocLgaxZ5rbkkmocVxpKf+XF6j1jfQ7rFdv5ALCyiSuh+Ko3IQp2M9BXQRuZLRCG9R8l7hPqHWgLvfdUpIuJ86aYNGu8MBxTSYbr29tQ=,iv:M1H0FYg+3x8s8V2kQ6eTMBVjjmxbIshrghqv8bhAxBE=,tag:ejYH0fsji4SKhDs7rVFFXg==,type:str]
+        ssh_user: ansible
+    wireguard:
+        extra_peers:
+            - name: pc
+              persistent_keepalive: 25
+              preshared_key: REDACTED_WG_PSK
+              public_key: REDACTED_WG_PUBKEY
+              wg_ip: 172.16.0.10
+            - name: phone
+              persistent_keepalive: 25
+              preshared_key: REDACTED_WG_PSK
+              public_key: REDACTED_WG_PUBKEY
+              wg_ip: 172.16.0.11
+        lxc_ip: 172.16.0.2
+        lxc_pubkey: REDACTED_WG_PUBKEY
+        network: 172.16.0.0/24
+        port: 51820
+        psk_lxc: REDACTED_WG_PSK
+        routed_subnets:
+            - 10.0.0.0/24
+            - REDACTED_PVE_IP/32
+        vps_ip: 172.16.0.1
+garage:
+    garage_admin_token: ENC[AES256_GCM,data:CgXnh6nzFb2cgqwQfU0F82a+0UkkqVt8+E84UB1K5AOAO0jGNx23TeiigLRXjlJgr7o5Z7ntowqdjkWp0RTbNw==,iv:bRgOFAVo3QfyLJzWkmhup8VvA+/UC5bEfa7bkCmkQ+I=,tag:5jXlksqC75RpbsyFFV7/qQ==,type:str]
+k3s_provision:
+    break_glass_keys:
+        - ssh-rsa REDACTED_SSH_PUBKEY
+    default_pve_node: pve01
+    k3s_version: v1.35.5+k3s1
+    nodes:
+        k3s-cp-01:
+            cores: 2
+            data_disks:
+                - datastore_id: local-lvm
+                  size_gb: 500
+                  type: nvme
+                - datastore_id: sda-data
+                  size_gb: 300
+                  type: ssd
+            ip: 10.0.0.10/24
+            memory: 6144
+            role: server
+        k3s-worker-01:
+            cores: 3
+            data_disks:
+                - datastore_id: local-lvm
+                  size_gb: 500
+                  type: nvme
+                - datastore_id: sda-data
+                  size_gb: 300
+                  type: ssd
+            ip: 10.0.0.11/24
+            memory: 10240
+            role: agent
+        k3s-worker-02:
+            cores: 3
+            data_disks:
+                - datastore_id: local-lvm
+                  size_gb: 500
+                  type: nvme
+                - datastore_id: sda-data
+                  size_gb: 300
+                  type: ssd
+            ip: 10.0.0.12/24
+            memory: 10240
+            role: agent
+    proxmox_api_token: ENC[AES256_GCM,data:KcZbZXdK4dprxux1+KNvwoQ4oxB5v+nj/upB0MOFyoc6d/UGQ9xJuqvmjLmLVB7gCovY6WZi93mugVVye/dYoyqJ,iv:49SQMMm/aTbN96+mK50WZrNjaYreb2ePmOCEKKZGqkY=,tag:oJSuuK/v4l1Aict9RmlRQw==,type:str]
+    proxmox_endpoint: https://REDACTED_PVE_IP:8006/
+    proxmox_insecure: true
+    pve_node_addresses:
+        pve01: REDACTED_PVE_IP
+    pve_ssh_private_key: ENC[AES256_GCM,data:+XxtRGPJoDeMwW5D/bfYtGj+O3s0tqsUuw8QRxCwlOkLNBxJDCPsxyhmb2eYywM4aERHxXpZnqqnQoq4XkA/ZIpLxGPlXkDBx4WLKX4QKAlA0dP1kX5dkAPKAOIxjdJBjoMSdqgeVXfb85wPfZEKfwlMPEZPUb4Pz6do7lq+7Bvd775AtUQgeP7omfHv3Nw1dOyhdCEJXBCDGZuGGWNlvc6VgmJ8SaoMWvMbyynTNcP5mk0Bg4jEgdFpTVb92lrKRgvu/7V+HfWJp81vtEubkMeWAUJTKws6/4jyF0QvS2u6H4KAkq7qGG8rPxSZmb511yK2w81Kux8GrnQnr6PUiEZj/9aSh0CnFkP92Vdrk4pJ4nAXmXPt/b5OBkXwk8ydqh+6Y5bDFuMvn7gOE0XIa4Zbrs7Fg1xp0TUZQUd84YspsEGKEpdnqHK1oepLOZpsOB2otA5BkM1krhB7zvrvsOYWo02Rzi72gMqjlMOKBJRvVX14i3CCDVC/EFMdfq1xjBrg6eViMdy81Q6+INds,iv:Np4LOzyiA8cVMcVbUtOjC3iF89ri3TGks6lbFZKr+TA=,tag:iVmLzJ7GjCJfEGHjf1LHrA==,type:str]
+    pve_ssh_username: ansible
+    root_disk_gb: 60
+    ssh_principals:
+        - ares
+packer:
+    build_gateway: 10.0.0.1
+    build_ip: 10.0.0.9/24
+    build_nameserver: 1.1.1.1
+    proxmox_bridge: vmbr10
+    proxmox_insecure_skip_tls_verify: true
+    proxmox_iso_file: local:iso/404079b253c03df4faee35898313e7c4d9dde17b.iso
+    proxmox_iso_storage_pool: local
+    proxmox_node: pve01
+    proxmox_storage_pool: local-lvm
+    proxmox_token: ENC[AES256_GCM,data:DNwenDkCA6jg8IuTLzRBpiif+WsB8BW/Vj81CZUT7O5DfC+8,iv:6XupWPTu54SuOLxfqUmuP5d2HrEQeGif6hrtRW/7AUc=,tag:ZbZMw5nBcZsmh3uAq47f+A==,type:str]
+    proxmox_url: https://REDACTED_PVE_IP:8006/api2/json
+    proxmox_username: REDACTED_PROXMOX_USER
+    ssh_build_password: ENC[AES256_GCM,data:za/D31aWJ+VVyWrORn6iC9n8HJTXNNvXhww/Tf/HtRI=,iv:2ybspHnXcNKG7g48jLF+H2hqCHgODIyzuLCCZbo6ngg=,tag:k6IYTeAxxWGEUp4TcLVhzw==,type:str]
+    ssh_build_password_hash: ENC[AES256_GCM,data:zHJR6HB1Jni4udrEt5AAXcZgAvoPW7Bon5Piko3QdeM9kY96bMYkBfOEbDcCLGTukMhogEGqzYNw614JRqaacNEeWS2vNnFDtwNAaFEFbRmLPm0qPn2KX3CxW5xv3+/U/MZyBPXRxfZ28w==,iv:MnYR/bTe7dpPHqzn97o4GReeyuCaGm2j0mHxUgzr4Ds=,tag:DFTxdwp4P0pJp0dKocxPRw==,type:str]
+    ssh_build_username: packer
+    ubuntu_iso_checksum: sha256:e907d92eeec9df64163a7e454cbc8d7755e8ddc7ed42f99dbc80c40f1a138433
+    ubuntu_iso_url: https://releases.ubuntu.com/24.04.4/ubuntu-24.04.4-live-server-amd64.iso
+pve_bootstrap:
+    pve_ansible_ssh_private_key_b64: REDACTED_PRIVATE_KEY_B64
+    pve_ansible_ssh_pub_key: REDACTED_SSH_PUBKEY
+    pve_notifications_smtp_host: REDACTED_SMTP_HOST
+    pve_notifications_smtp_password: ENC[AES256_GCM,data:41bjfjNfbkfYEbN5polm3Vv4Qs+gIdkpfJo7SH1Tw349/T5YRTU14369TE2x+0ltTDbAkdxXdxX8cklRfp4gV9rrL6I+mPNGD6py3Ck8RzDGeO4bPhbys2OL,iv:OpHQBTaem+KgTCbDTyp63w/GVb7QLNMkXGzWHNm+plE=,tag:3ad/0WVr96+xli9MjrdRiQ==,type:str]
+    pve_notifications_smtp_port: 587
+    pve_notifications_smtp_user: REDACTED_SMTP_USER
+    pve_secret_password_ares: REDACTED_PASSWORD
+    pve_secret_password_packer: REDACTED_PASSWORD
+    pve_secret_password_terraform: REDACTED_PASSWORD
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age1aswdstmpfeyztl2z0mz7a336g2kxd9z4g3zje3tuf6lqzum3ravs0d42fd
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBaQU5xZlU2SUtySGV3dFpR
+            MG8ycjd1Tmd6THhaS3V2TGJYajg0WkwrcXhrCjNTQUVCWU5rM0FNa2hCalBhRkZa
+            aFY4K2ZNdDEwM1dvRjNIczJqcGxUTHcKLS0tIFJIdS8yUENxZ1B6NDVCV1VJRFF2
+            YjdpRDhyYzUzcWxyMlJTZVRVUlRsOUEK6mXhnOEDMi74abe+0NCQDyPzlSc4X4kz
+            zYj3r7blms+9sbGaH+/yqofh3cbhHg/q6Gab5m8F27vUGohublSUyA==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2026-06-20T13:27:13Z"
+    mac: ENC[AES256_GCM,data:omG1xUbwZgqvZ5ceVfSU5qpDgtitgsCk0uqRRpfjdDx5hYd1Ku6HUcYlKXEbCj0KqLDDSGKYM+kv5GwUrk+4yFbhRw/83wzAqCzTLFd/lW7+R/A548tmYbndyksqFE4q7zxlxQLzPow4CjDM/oeesAl4X2bvojzNLVcOhr8N8Y0=,iv:derZq1c0ItMouKjFxUNYI6eaIqi3RjGN5mltLbSzsik=,tag:p7Yi9ZE+L+oxinauxPynpg==,type:str]
+    pgp: []
+    encrypted_regex: ^(.*_token|.*_password|.*_hash|.*_private_key)$
+    version: 3.9.0

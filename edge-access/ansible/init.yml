@@ -22,12 +22,16 @@
       ansible.builtin.set_fact:
         _existing: "{{ lookup('community.sops.sops', config_file) | from_yaml }}"
 
+    - name: Extract edge_access section
+      ansible.builtin.set_fact:
+        _ea: "{{ _existing.edge_access | default({}) }}"
+
     - name: Decide what is missing
       ansible.builtin.set_fact:
-        _need_key: "{{ not (_existing.lxc.ssh_public_key | default('')) or not (_existing.lxc.ansible_ssh_private_key | default('')) }}"
-        _need_lxc_psk: "{{ not (_existing.wireguard.psk_lxc | default('')) }}"
+        _need_key: "{{ not (_ea.lxc.ssh_public_key | default('')) or not (_ea.lxc.ansible_ssh_private_key | default('')) }}"
+        _need_lxc_psk: "{{ not (_ea.wireguard.psk_lxc | default('')) }}"
         _need_peer_psks: >-
-          {{ (_existing.wireguard.extra_peers | default([])
+          {{ (_ea.wireguard.extra_peers | default([])
               | map(attribute='preshared_key', default='')
               | select('equalto', '') | list | length) > 0 }}
 
@@ -81,7 +85,7 @@
                 if not p.get('preshared_key'):
                     p['preshared_key'] = base64.b64encode(os.urandom(32)).decode()
             print(json.dumps(peers))
-          - "{{ _existing.wireguard.extra_peers | to_json }}"
+          - "{{ _ea.wireguard.extra_peers | to_json }}"
       register: _updated_peers_result
       no_log: true
       changed_when: true
@@ -98,14 +102,16 @@
         dest: "{{ config_file }}"
         mode: "0600"
         content: "{{ _existing
-          | combine({'lxc': _existing.lxc | combine({
-              'ssh_public_key': _new_ssh_public_key | default(_existing.lxc.ssh_public_key | default('')),
-              'ansible_ssh_private_key': _new_ssh_private_key | default(_existing.lxc.ansible_ssh_private_key | default(''))
-            })}, recursive=true)
-          | combine({'wireguard': _existing.wireguard | combine({
-              'psk_lxc': _new_lxc_psk | default(_existing.wireguard.psk_lxc | default('')),
-              'extra_peers': _updated_extra_peers | default(_existing.wireguard.extra_peers)
-            })}, recursive=true)
+          | combine({'edge_access': _ea
+            | combine({'lxc': _ea.lxc | combine({
+                'ssh_public_key': _new_ssh_public_key | default(_ea.lxc.ssh_public_key | default('')),
+                'ansible_ssh_private_key': _new_ssh_private_key | default(_ea.lxc.ansible_ssh_private_key | default(''))
+              })}, recursive=true)
+            | combine({'wireguard': _ea.wireguard | combine({
+                'psk_lxc': _new_lxc_psk | default(_ea.wireguard.psk_lxc | default('')),
+                'extra_peers': _updated_extra_peers | default(_ea.wireguard.extra_peers)
+              })}, recursive=true)
+          }, recursive=true)
           | to_nice_yaml(width=4096) }}"
       no_log: true
       when: _need_key | bool or _need_lxc_psk | bool or _need_peer_psks | bool
