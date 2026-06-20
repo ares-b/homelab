@@ -112,11 +112,11 @@ variable "k3s_version" {
 
 variable "nodes" {
   type = map(object({
-    role       = string
-    pve_node   = optional(string)
-    cores      = number
-    memory     = number
-    ip         = string
+    role     = string
+    pve_node = optional(string)
+    cores    = number
+    memory   = number
+    ip       = string
     data_disks = optional(list(object({
       size_gb      = number
       type         = string
@@ -132,7 +132,7 @@ variable "nodes" {
       ip     = "10.0.0.10/24"
       data_disks = [
         { size_gb = 300, type = "nvme", datastore_id = "local-lvm" },
-        { size_gb = 500, type = "ssd",  datastore_id = "sda-data"  },
+        { size_gb = 500, type = "ssd", datastore_id = "sda-data" },
       ]
     }
     k3s-worker-01 = {
@@ -142,7 +142,7 @@ variable "nodes" {
       ip     = "10.0.0.11/24"
       data_disks = [
         { size_gb = 300, type = "nvme", datastore_id = "local-lvm" },
-        { size_gb = 500, type = "ssd",  datastore_id = "sda-data"  },
+        { size_gb = 500, type = "ssd", datastore_id = "sda-data" },
       ]
     }
     k3s-worker-02 = {
@@ -152,7 +152,7 @@ variable "nodes" {
       ip     = "10.0.0.12/24"
       data_disks = [
         { size_gb = 300, type = "nvme", datastore_id = "local-lvm" },
-        { size_gb = 500, type = "ssd",  datastore_id = "sda-data"  },
+        { size_gb = 500, type = "ssd", datastore_id = "sda-data" },
       ]
     }
   }

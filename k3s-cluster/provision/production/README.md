@@ -1,6 +1,6 @@
 # k3s-cluster
 
-Terraform provisions a k3s cluster on Proxmox from the `ubuntu-k3s` Packer template. Node specs live in the `nodes` variable — see `variables.tf` for all options. k3s itself installs via cloud-init on first boot; node configuration (disk LVM, labels, k8s users) runs out of band via Ansible.
+Terraform provisions a k3s cluster on Proxmox from the `ubuntu-k3s` Packer template. Node specs live in the `nodes` variable — see `variables.tf` for all options. k3s installs via cloud-init on first boot (bootstrap only). Host config (disk LVM, firewall) converges via Ansible; cluster objects (k8s users, node labels) are managed declaratively by the Terraform roots under `../../resources`.
 
 ## Prerequisites
 
@@ -20,8 +20,9 @@ Secrets are injected from the root `config.sops.yaml` (k3s_provision section). A
 After apply:
 
 ```sh
-make k3s-configure    # ansible: disks + node labels
+make k3s-configure    # ansible: node prep, disk LVM, firewall
 make k3s-users-apply  # terraform: k8s ServiceAccounts + RBAC
+make k3s-nodes-apply  # terraform: node storage labels
 make k3s-bootstrap    # flux + sealed-secrets + garage layout
 make k3s-kubeconfig   # write ~/.kube/config for $USER (reads the issued token)
 ```

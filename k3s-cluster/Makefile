@@ -5,6 +5,7 @@ TF_DIR            := provision/production
 ANSIBLE_DIR       := provision/ansible
 GARAGE_TF_DIR     := resources/garage
 USERS_TF_DIR      := resources/k8s-users
+NODES_TF_DIR      := resources/k8s-nodes
 INVENTORY         := $(ANSIBLE_DIR)/inventory.ini
 ANSIBLE           ?= ansible-playbook
 
@@ -25,16 +26,20 @@ export ANSIBLE_CONFIG := $(ROOT)/ansible.cfg
 .PHONY: help plan apply destroy configure wait bootstrap garage-layout \
         garage-init garage-plan garage-apply garage-destroy \
         users-init users-plan users-apply users-destroy \
+        nodes-init nodes-plan nodes-apply nodes-destroy \
         kubeconfig kubeconfig-admin drain uncordon shutdown
 
 help:
 	@echo "plan             terraform plan"
 	@echo "apply            terraform apply (provisions VMs; k3s installs via cloud-init)"
 	@echo "destroy          terraform destroy"
-	@echo "configure        ansible: disks + node labels (run after apply)"
+	@echo "configure        ansible: node prep, disks (LVM), firewall (run after apply)"
 	@echo "users-apply      terraform apply k8s users (ServiceAccounts + RBAC)"
 	@echo "users-plan       terraform plan k8s users"
 	@echo "users-destroy    terraform destroy k8s users"
+	@echo "nodes-apply      terraform apply node storage labels"
+	@echo "nodes-plan       terraform plan node storage labels"
+	@echo "nodes-destroy    terraform destroy node storage labels"
 	@echo "bootstrap        flux bootstrap + sealed-secrets key + garage layout"
 	@echo "garage-layout    initialize garage cluster layout (idempotent)"
 	@echo "garage-plan      terraform plan for garage buckets/keys"
@@ -116,6 +121,13 @@ users-init:
 users-plan users-apply users-destroy:
 	cd $(USERS_TF_DIR) && TF_VAR_kubeconfig_path=$(KUBECONFIG_ADMIN) \
 		terraform $(subst users-,,$@) $(if $(filter users-plan,$@),,-auto-approve)
+
+nodes-init:
+	cd $(NODES_TF_DIR) && terraform init
+
+nodes-plan nodes-apply nodes-destroy:
+	cd $(NODES_TF_DIR) && TF_VAR_kubeconfig_path=$(KUBECONFIG_ADMIN) \
+		sops exec-file $(CONFIG_SOPS) '$(SOPS_EXEC) {} TF_VAR_ k3s_provision terraform $(subst nodes-,,$@) $(if $(filter nodes-plan,$@),,-auto-approve)'
 
 kubeconfig:
 	@SERVER_IP=$$(cd $(TF_DIR) && terraform output -raw server_ip) && \

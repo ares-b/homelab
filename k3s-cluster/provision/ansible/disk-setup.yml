@@ -1,51 +1,41 @@
 ---
-- name: Set up LVM on data disks
+# Create one LVM volume group per data disk. topolvm consumes the VGs and
+# manages logical volumes dynamically, so no LV/filesystem/mount is created here.
+- name: Set up LVM volume groups for topolvm
   hosts: k3s
   become: true
+  gather_facts: false
   tasks:
     - name: Skip host without data disks
-      meta: end_host
+      ansible.builtin.meta: end_host
       when: data_disks | default([]) | length == 0
 
     - name: Install lvm2
-      apt:
+      ansible.builtin.apt:
         name: lvm2
         state: present
         update_cache: false
 
-    - name: Check disk devices exist
-      stat:
+    - name: Check data disk devices exist
+      ansible.builtin.stat:
         path: "{{ item.device }}"
-      register: disk_stats
+      register: disk_stat
       loop: "{{ data_disks }}"
+      loop_control:
+        label: "{{ item.device }}"
 
-    - name: Fail if disk missing
-      fail:
+    - name: Fail if a data disk is missing
+      ansible.builtin.fail:
         msg: "{{ item.item.device }} not found on {{ inventory_hostname }}"
       when: not item.stat.exists
-      loop: "{{ disk_stats.results }}"
+      loop: "{{ disk_stat.results }}"
+      loop_control:
+        label: "{{ item.item.device }}"
 
-    - name: Check existing volume groups
-      command: vgs --noheadings -o vg_name
-      register: existing_vgs
-      changed_when: false
-      failed_when: false
-
-    - name: Unmount disk and remove fstab entry
-      shell: |
-        mount_point=$(lsblk -no MOUNTPOINT {{ item.device }} 2>/dev/null | tr -d ' ')
-        [ -n "$mount_point" ] && umount "{{ item.device }}" || true
-        sed -i '\|LABEL=k3s-{{ item.type }}|d' /etc/fstab
+    - name: Ensure volume group per data disk
+      community.general.lvg:
+        vg: "{{ item.vg_name }}"
+        pvs: "{{ item.device }}"
       loop: "{{ data_disks }}"
-      when: item.vg_name not in (existing_vgs.stdout_lines | map('trim') | list)
-      changed_when: false
-
-    - name: Create LVM physical volume
-      command: pvcreate -ff -y {{ item.device }}
-      loop: "{{ data_disks }}"
-      when: item.vg_name not in (existing_vgs.stdout_lines | map('trim') | list)
-
-    - name: Create LVM volume group
-      command: vgcreate {{ item.vg_name }} {{ item.device }}
-      loop: "{{ data_disks }}"
-      when: item.vg_name not in (existing_vgs.stdout_lines | map('trim') | list)
+      loop_control:
+        label: "{{ item.vg_name }} ({{ item.device }})"

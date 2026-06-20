@@ -1,0 +1,41 @@
+---
+# Node firewall. Lives in Ansible (not cloud-init) so ports converge on running
+# nodes and adding one never forces a VM rebuild. The image (packer) ships ufw
+# installed with default-deny incoming + SSH allowed but disabled; this play
+# adds the cluster ports and enables it.
+- name: Configure k3s node firewall
+  hosts: k3s
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Allow common k3s ports
+      community.general.ufw:
+        rule: allow
+        port: "{{ item.port }}"
+        proto: "{{ item.proto }}"
+        comment: "{{ item.comment }}"
+      loop:
+        - { port: "22", proto: tcp, comment: SSH }
+        - { port: "10250", proto: tcp, comment: kubelet metrics }
+        - { port: "9100", proto: tcp, comment: node-exporter }
+        - { port: "8472", proto: udp, comment: Flannel VXLAN }
+        - { port: "51820", proto: udp, comment: Flannel WireGuard }
+        - { port: "5001", proto: tcp, comment: k3s embedded registry }
+
+    - name: Allow server-only ports (API, etcd)
+      community.general.ufw:
+        rule: allow
+        port: "{{ item.port }}"
+        proto: tcp
+        comment: "{{ item.comment }}"
+      loop:
+        - { port: "6443", comment: k3s API server }
+        - { port: "2379", comment: etcd client }
+        - { port: "2380", comment: etcd peer }
+      when: inventory_hostname in groups.get('k3s_server', [])
+
+    - name: Enable ufw with default-deny incoming
+      community.general.ufw:
+        state: enabled
+        policy: deny
+        direction: incoming

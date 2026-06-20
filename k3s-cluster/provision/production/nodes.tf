@@ -48,7 +48,6 @@ resource "proxmox_virtual_environment_file" "user_data" {
     file_name = "${each.key}-user-data.yaml"
     data = templatefile("${path.module}/templates/k3s-node.cloud-init.yaml.tftpl", {
       hostname          = each.key
-      role              = each.value.role
       ssh_ca_public_key = var.ssh_ca_public_key
       principals        = var.ssh_principals
       break_glass_keys  = var.break_glass_keys
@@ -122,8 +121,11 @@ resource "proxmox_virtual_environment_vm" "k3s" {
   on_boot = true
 
   lifecycle {
-    # The template's cloud-init drive details change on clone; ignore churn.
-    ignore_changes = [clone]
+    # clone: cloud-init drive details change on clone; ignore churn.
+    # user_data_file_id: cloud-init is first-boot only. Editing the template
+    # re-uploads the snippet (for future nodes) but must not rebuild a live
+    # node to ship config that won't re-run — that converges via Ansible.
+    ignore_changes = [clone, initialization[0].user_data_file_id]
   }
 }
 

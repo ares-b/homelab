@@ -24,15 +24,4 @@ write_files:
     content: ${jsonencode(join("\n", principals))}
 
 runcmd:
-  - ufw allow 10250/tcp comment 'kubelet metrics'
-  - ufw allow 9100/tcp  comment 'node-exporter'
-  - ufw allow 8472/udp  comment 'Flannel VXLAN'
-  - ufw allow 51820/udp comment 'Flannel WireGuard'
-  - ufw allow 5001/tcp  comment 'k3s embedded registry'
-%{ if role == "server" ~}
-  - ufw allow 6443/tcp comment 'k3s API server'
-  - ufw allow 2379/tcp comment 'etcd client'
-  - ufw allow 2380/tcp comment 'etcd peer'
-%{ endif ~}
-  - ufw --force enable
   - ${jsonencode(install_command)}
