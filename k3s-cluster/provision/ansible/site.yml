@@ -1,8 +1,6 @@
 ---
-# Post-apply node configuration. Run via `make -C k3s-cluster configure`,
-# which waits for SSH first. Kubernetes cluster objects (users, node labels)
-# are managed separately by Terraform: `make -C k3s-cluster users-apply` and
-# `make -C k3s-cluster nodes-apply`.
+# Host config, run via `make -C k3s-cluster configure`. Cluster objects
+# (users, node labels) are separate Terraform roots under ../../resources.
 - import_playbook: node-prep.yml
 - import_playbook: disk-setup.yml
 - import_playbook: firewall.yml

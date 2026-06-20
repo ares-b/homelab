@@ -1,8 +1,6 @@
 ---
-# Node firewall. Lives in Ansible (not cloud-init) so ports converge on running
-# nodes and adding one never forces a VM rebuild. The image (packer) ships ufw
-# installed with default-deny incoming + SSH allowed but disabled; this play
-# adds the cluster ports and enables it.
+# In Ansible, not cloud-init, so adding a port converges on running nodes
+# without a VM rebuild. The image ships ufw staged but disabled.
 - name: Configure k3s node firewall
   hosts: k3s
   become: true

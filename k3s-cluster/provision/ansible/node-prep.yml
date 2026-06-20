@@ -4,9 +4,8 @@
   become: true
   gather_facts: false
   tasks:
-    # topolvm's CSI plugin races to register its socket here on kubelet start;
-    # pre-creating the dir avoids the registration race. Lives in Ansible (not
-    # cloud-init) so it applies to existing nodes, not just freshly built ones.
+    # topolvm's CSI plugin races to register its socket here at kubelet start;
+    # pre-create the dir. In Ansible so existing nodes get it, not just fresh.
     - name: Ensure kubelet plugins_registry directory exists
       ansible.builtin.file:
         path: /var/lib/kubelet/plugins_registry

@@ -121,10 +121,10 @@ resource "proxmox_virtual_environment_vm" "k3s" {
   on_boot = true
 
   lifecycle {
-    # clone: cloud-init drive details change on clone; ignore churn.
-    # user_data_file_id: cloud-init is first-boot only. Editing the template
-    # re-uploads the snippet (for future nodes) but must not rebuild a live
-    # node to ship config that won't re-run — that converges via Ansible.
+    # clone: cloud-init drive details churn on clone.
+    # user_data_file_id: cloud-init runs once at first boot. A template edit
+    # re-uploads the snippet for future nodes but must not rebuild a live node;
+    # that config converges via Ansible.
     ignore_changes = [clone, initialization[0].user_data_file_id]
   }
 }
