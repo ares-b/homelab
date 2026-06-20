@@ -20,7 +20,8 @@ Secrets are injected from the root `config.sops.yaml` (k3s_provision section). A
 After apply:
 
 ```sh
-make k3s-configure    # ansible: disks, node labels, k8s users
+make k3s-configure    # ansible: disks + node labels
+make k3s-users-apply  # terraform: k8s ServiceAccounts + RBAC
 make k3s-bootstrap    # flux + sealed-secrets + garage layout
-make k3s-kubeconfig   # write ~/.kube/config for $USER
+make k3s-kubeconfig   # write ~/.kube/config for $USER (reads the issued token)
 ```

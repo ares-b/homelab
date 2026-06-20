@@ -14,6 +14,7 @@
 
 help:
 	@echo "k3s-cluster   : k3s-plan k3s-apply k3s-destroy k3s-configure k3s-bootstrap"
+	@echo "                k3s-users-apply k3s-users-plan k3s-users-destroy"
 	@echo "                k3s-kubeconfig k3s-kubeconfig-admin k3s-drain k3s-uncordon"
 	@echo "                cluster-shutdown garage-init garage-plan garage-apply garage-destroy"
 	@echo "pve-bootstrap : pve-setup pve-init pve-bootstrap"

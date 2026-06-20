@@ -13,11 +13,6 @@ output "server_ip" {
   value       = local.server_ip
 }
 
-output "k8s_users" {
-  description = "Kubernetes users to reconcile. Consumed by 'make configure'."
-  value       = var.k8s_users
-}
-
 output "kubeconfig_command" {
   description = "Fetch the kubeconfig and point it at the server."
   value       = "ssh ops@${local.server_ip} sudo cat /etc/rancher/k3s/k3s.yaml | sed 's/127.0.0.1/${local.server_ip}/' > k3s.yaml"

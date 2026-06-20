@@ -4,6 +4,7 @@ SOPS_EXEC         := python3 $(ROOT)/scripts/sops-exec.py
 TF_DIR            := provision/production
 ANSIBLE_DIR       := provision/ansible
 GARAGE_TF_DIR     := resources/garage
+USERS_TF_DIR      := resources/k8s-users
 INVENTORY         := $(ANSIBLE_DIR)/inventory.ini
 ANSIBLE           ?= ansible-playbook
 
@@ -23,13 +24,17 @@ export ANSIBLE_CONFIG := $(ROOT)/ansible.cfg
 
 .PHONY: help plan apply destroy configure wait bootstrap garage-layout \
         garage-init garage-plan garage-apply garage-destroy \
+        users-init users-plan users-apply users-destroy \
         kubeconfig kubeconfig-admin drain uncordon shutdown
 
 help:
 	@echo "plan             terraform plan"
 	@echo "apply            terraform apply (provisions VMs; k3s installs via cloud-init)"
 	@echo "destroy          terraform destroy"
-	@echo "configure        ansible: disks, node labels, k8s users (run after apply)"
+	@echo "configure        ansible: disks + node labels (run after apply)"
+	@echo "users-apply      terraform apply k8s users (ServiceAccounts + RBAC)"
+	@echo "users-plan       terraform plan k8s users"
+	@echo "users-destroy    terraform destroy k8s users"
 	@echo "bootstrap        flux bootstrap + sealed-secrets key + garage layout"
 	@echo "garage-layout    initialize garage cluster layout (idempotent)"
 	@echo "garage-plan      terraform plan for garage buckets/keys"
@@ -63,8 +68,7 @@ wait:
 	@until ansible k3s -i $(INVENTORY) -m ping --timeout=5 >/dev/null 2>&1; do sleep 15; done
 
 configure: wait
-	@K8S_USERS=$$(cd $(TF_DIR) && terraform output -json k8s_users) && \
-	$(ANSIBLE) -i $(INVENTORY) $(ANSIBLE_DIR)/site.yml -e "{\"k8s_users\": $$K8S_USERS}"
+	$(ANSIBLE) -i $(INVENTORY) $(ANSIBLE_DIR)/site.yml
 
 bootstrap: | $(WORKLOAD_CA_FILE)
 	$(MAKE) kubeconfig-admin
@@ -103,8 +107,15 @@ garage-init:
 garage-plan garage-apply garage-destroy:
 	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl port-forward svc/garage 3903:3903 -n garage & \
 	PF_PID=$$!; sleep 2; \
-	cd $(GARAGE_TF_DIR) && sops exec-file $(CONFIG_SOPS) '$(SOPS_EXEC) {} TF_VAR_ garage terraform $(subst garage-,,$@) -auto-approve'; \
+	cd $(GARAGE_TF_DIR) && sops exec-file $(CONFIG_SOPS) '$(SOPS_EXEC) {} TF_VAR_ garage terraform $(subst garage-,,$@) $(if $(filter garage-plan,$@),,-auto-approve)'; \
 	kill $$PF_PID 2>/dev/null || true
+
+users-init:
+	cd $(USERS_TF_DIR) && terraform init
+
+users-plan users-apply users-destroy:
+	cd $(USERS_TF_DIR) && TF_VAR_kubeconfig_path=$(KUBECONFIG_ADMIN) \
+		terraform $(subst users-,,$@) $(if $(filter users-plan,$@),,-auto-approve)
 
 kubeconfig:
 	@SERVER_IP=$$(cd $(TF_DIR) && terraform output -raw server_ip) && \
