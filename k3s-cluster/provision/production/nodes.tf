@@ -16,10 +16,6 @@ locals {
   }
 
   disk_device_letters = ["b", "c", "d", "e", "f"]
-
-  ansible_dir = abspath("${path.module}/../ansible")
-  inventory   = "${local.ansible_dir}/inventory.ini"
-  vm_ids      = jsonencode([for name, vm in proxmox_virtual_environment_vm.k3s : vm.id])
 }
 
 # Fail fast if any node references a PVE node not declared in pve_node_addresses.
@@ -152,52 +148,6 @@ resource "local_file" "host_vars" {
   })
 }
 
-resource "terraform_data" "wait_for_nodes" {
-  triggers_replace = { vm_ids = local.vm_ids }
-
-  depends_on = [
-    proxmox_virtual_environment_vm.k3s,
-    local_file.ansible_inventory,
-    local_file.host_vars,
-  ]
-
-  provisioner "local-exec" {
-    command = <<-EOT
-      ${join("\n      ", [for name, vm in proxmox_virtual_environment_vm.k3s : "ssh-keygen -R ${split("/", local.resolved_nodes[name].ip)[0]} 2>/dev/null || true"])}
-      echo "Waiting for k3s nodes to be reachable..."
-      until ansible k3s -i '${local.inventory}' -m ping --timeout=5 >/dev/null 2>&1; do
-        sleep 15
-      done
-    EOT
-  }
-}
-
-resource "terraform_data" "disk_setup" {
-  triggers_replace = { vm_ids = local.vm_ids }
-
-  depends_on = [terraform_data.wait_for_nodes]
-
-  provisioner "local-exec" {
-    command = "ansible-playbook -i '${local.inventory}' '${local.ansible_dir}/disk-setup.yml'"
-  }
-}
-
-resource "terraform_data" "k8s_nodes" {
-  triggers_replace = { vm_ids = local.vm_ids }
-
-  depends_on = [terraform_data.disk_setup]
-
-  provisioner "local-exec" {
-    command = "ansible-playbook -i '${local.inventory}' '${local.ansible_dir}/k8s-nodes.yml'"
-  }
-}
-
-resource "terraform_data" "k8s_users" {
-  triggers_replace = { vm_ids = local.vm_ids, k8s_users = jsonencode(var.k8s_users) }
-
-  depends_on = [terraform_data.k8s_nodes]
-
-  provisioner "local-exec" {
-    command = "ansible-playbook -i '${local.inventory}' '${local.ansible_dir}/k8s-users.yml' -e '{\"k8s_users\":${jsonencode(var.k8s_users)}}'"
-  }
-}
+# Node configuration (disk LVM, k8s labels, k8s users) runs out of band via
+# Ansible after apply: `make -C k3s-cluster configure`. Terraform owns the
+# inventory and host_vars files above; Ansible consumes them.

@@ -1,0 +1,6 @@
+---
+# Post-apply node configuration. Run via `make -C k3s-cluster configure`,
+# which waits for SSH then passes k8s_users from terraform output.
+- import_playbook: disk-setup.yml
+- import_playbook: k8s-nodes.yml
+- import_playbook: k8s-users.yml

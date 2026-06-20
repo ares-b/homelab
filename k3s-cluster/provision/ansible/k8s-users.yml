@@ -50,8 +50,9 @@
             kubernetes.io/service-account.name: {{ item.key }}
         type: kubernetes.io/service-account-token
         MANIFEST
+      register: _sa_apply
       loop: "{{ k8s_users | dict2items }}"
-      changed_when: true
+      changed_when: "'created' in _sa_apply.stdout or 'configured' in _sa_apply.stdout"
 
     - name: Sync ClusterRoleBindings
       shell: |
@@ -76,5 +77,6 @@
             name: {{ item.key }}
             namespace: kube-system
         MANIFEST
+      register: _crb_apply
       loop: "{{ k8s_users | dict2items }}"
-      changed_when: true
+      changed_when: "'created' in _crb_apply.stdout or 'configured' in _crb_apply.stdout or 'deleted' in _crb_apply.stdout"

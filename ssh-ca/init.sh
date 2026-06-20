@@ -9,7 +9,7 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # age recipient to encrypt the private keys to. Defaults to the one declared in
 # the repo's sops config; override with AGE_RECIPIENT for another environment.
-sops_config="$here/../pve-bootstrap/.sops.yaml"
+sops_config="$here/../.sops.yaml"
 recipient="${AGE_RECIPIENT:-$(grep -oE 'age1[0-9a-z]+' "$sops_config" 2>/dev/null | head -1)}"
 if [[ -z "$recipient" ]]; then
   echo "no age recipient: set AGE_RECIPIENT or add one to $sops_config" >&2
