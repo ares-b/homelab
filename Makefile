@@ -161,7 +161,7 @@ garage-init:
 garage-plan garage-apply garage-destroy:
 	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl port-forward svc/garage 3903:3903 -n garage & \
 	PF_PID=$$!; sleep 2; \
-	cd $(GARAGE_TF_DIR) && sops exec-file secrets.sops.yaml '$(SOPS_EXEC) {} TF_VAR_ sh -c "stty sane; terraform $(subst garage-,,$@)"'; \
+	cd $(GARAGE_TF_DIR) && sops exec-file secrets.sops.yaml '$(SOPS_EXEC) {} TF_VAR_ terraform $(subst garage-,,$@) -auto-approve'; \
 	kill $$PF_PID 2>/dev/null || true
 
 pve-init:
