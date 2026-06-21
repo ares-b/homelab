@@ -8,6 +8,7 @@ Usage:
 """
 
 import argparse
+import getpass
 import secrets
 import subprocess
 import sys
@@ -26,8 +27,24 @@ KUBESEAL_ARGS = [
 ]
 
 
+# Human accounts: prompt for password. Service accounts: auto-generate.
+HUMAN_USERS = {"ares"}
+
 def gen_password() -> str:
     return secrets.token_urlsafe(32)
+
+
+def prompt_password(user: str) -> str:
+    while True:
+        pw = getpass.getpass(f"New password for {user}: ")
+        if not pw:
+            print("Password cannot be empty.", file=sys.stderr)
+            continue
+        confirm = getpass.getpass(f"Confirm password for {user}: ")
+        if pw != confirm:
+            print("Passwords do not match.", file=sys.stderr)
+            continue
+        return pw
 
 
 def run(*args, input=None, check=True) -> str:
@@ -68,7 +85,7 @@ def rotate_dagster_db() -> None:
 def rotate_pve_passwords(users: list[str]) -> None:
     for user in users:
         key = f"pve_secret_password_{user}"
-        password = gen_password()
+        password = prompt_password(user) if user in HUMAN_USERS else gen_password()
         sops_set(f'["pve_bootstrap"]["{key}"]', password)
         print(f"Rotated {key}")
 
