@@ -33,6 +33,10 @@ spec:
     # Secret dagster-postgresql-secret comes from the SealedSecret; the chart must not generate it.
     generatePostgresqlPasswordSecret: false
 
+    # Usage telemetry sent to telemetry.dagster.io.
+    telemetry:
+      enabled: false
+
     global:
       postgresqlSecretName: dagster-postgresql-secret
 
