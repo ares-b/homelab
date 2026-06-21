@@ -30,12 +30,14 @@ spec:
         name: dagster
         namespace: flux-system
   values:
+    # Secret dagster-postgresql-secret comes from the SealedSecret; the chart must not generate it.
+    generatePostgresqlPasswordSecret: false
+
     global:
       postgresqlSecretName: dagster-postgresql-secret
 
     postgresql:
       enabled: false
-      existingSecret: dagster-postgresql-secret
       postgresqlHost: postgresql-rw.postgresql.svc.cluster.local
       postgresqlUsername: dagster
       postgresqlDatabase: dagster
