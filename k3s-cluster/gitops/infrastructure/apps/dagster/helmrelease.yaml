@@ -45,6 +45,7 @@ spec:
             - name: s3-raw-secret
             - name: s3-master-secret
             - name: s3-product-secret
+            - name: dagster-api-keys
           resources:
             requests:
               cpu: 250m

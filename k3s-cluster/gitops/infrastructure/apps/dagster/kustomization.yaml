@@ -9,3 +9,4 @@ resources:
   - sealed-s3-raw-secret.yaml
   - sealed-s3-master-secret.yaml
   - sealed-s3-product-secret.yaml
+  - sealed-dagster-api-keys.yaml
