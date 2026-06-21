@@ -91,4 +91,25 @@ spec:
     dagster-user-deployments:
       enabled: true
       enableSubchart: false
-      deployments: []
+      deployments:
+        - name: crypto-ai-analysis
+          image:
+            repository: ghcr.io/ares-b/crypto_ai_analysis
+            tag: latest
+            pullPolicy: Always
+          dagsterApiGrpcArgs:
+            - "--module-name"
+            - "orchestration"
+          port: 3030
+          envSecrets:
+            - name: s3-raw-secret
+            - name: s3-master-secret
+            - name: s3-product-secret
+            - name: dagster-api-keys
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
