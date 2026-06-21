@@ -140,9 +140,9 @@ pve_bootstrap:
     pve_notifications_smtp_password: ENC[AES256_GCM,data:QZ8XSs3Gh9V2bU8s40cHBAFq4cwWwa4AHCJZ2V88hJMDcRbWrxKsAe2hz/NakNPOJiatH0gYe969zflrTRuvw9i/H2Bv4iteG+IzNZ2hgRSdX7VRiwi6o6Hw,iv:UnPO5EaWg4Q1FgHpOSEfDidsoysxJfFEp/5Vfi4DTw4=,tag:gUJwyuw+fkaIp6NejF8b0A==,type:str]
     pve_notifications_smtp_port: ENC[AES256_GCM,data:ohoQ,iv:X0ePz97ZWo6Vm2wGfPQGQD6lUVp+sMoRkMWvRlT9XLg=,tag:o+JsFXw1YxeJYUtidKfYzg==,type:int]
     pve_notifications_smtp_user: ENC[AES256_GCM,data:q8YKtRPQLChFQLRAqce2zL6la7o3/BKi,iv:yVMBOgS7q0/xqWS0RRCgUpPJH2ABO+l0TU+qpc08VSk=,tag:pEYVyW9PtJ8yX1Qwu44OxQ==,type:str]
-    pve_secret_password_ares: ENC[AES256_GCM,data:O1akaQgXI5nd+q9BJC8JYQSM25S5YfBRM/+MfJu2ztJCW++57dzQVYfUZA==,iv:IeIzs9g22Q820jKDtP2w7E5BD06EO53riFWkrB+dzPw=,tag:8kJCO8eiI/5dMytFEjPfgg==,type:str]
-    pve_secret_password_packer: ENC[AES256_GCM,data:n5to5nvRJ5TK7bLEOj+DZX6xadoJb0meexJ1VZiPSc9f0r6AEezS7ZTH3g==,iv:Up5NgOf3b+EOvCkBf4jNC93119IWSbPU/esBNAYav8U=,tag:oTjf9N9zH/6UHQYi/xxJ6w==,type:str]
-    pve_secret_password_terraform: ENC[AES256_GCM,data:R5/730Nw9BB7wfwBpEhVzZAC2CJSFXHJO4PaUvRIhbFZ03i//XRy5qtIfA==,iv:syRM5ke1GkbRkJlOcVA2i4rHIIcdeGYmFG7G1W5jqrY=,tag:eRSCxH1mmzA8Mxran7eZyQ==,type:str]
+    pve_secret_password_ares: ENC[AES256_GCM,data:0XaqEmnnXdN0Ls9SzE8WsUQ=,iv:Lo/ZAUpWKFOPrwl+jQNHMR2XnAzT/XJRIhoe7KliqnE=,tag:1azUgEa7eG1EoeRZxm7fKw==,type:str]
+    pve_secret_password_packer: ENC[AES256_GCM,data:GjBMAW3GQ7UG9obtS7solXzmW+4TIhGb4sLEtmPoaNXqg0wppDmjdPqBHQ==,iv:5m5yLvfpJDtOTPiK0AGDW+TN9ogwS+vPTfO3+XjMSV4=,tag:BTrm5Px7WdFGWpwke4lbVQ==,type:str]
+    pve_secret_password_terraform: ENC[AES256_GCM,data:kk/oKpuKQrIzZWQhQkSMysLoaXCM5uhOWAlVLWldsrPtajGFTACD2E+02w==,iv:vc/wqDqgY6K61QupHXNQDxPUrTWd3DlS4dXwD2rpdR8=,tag:lgHyMY15N6GgViyDuPZE1A==,type:str]
 sops:
     kms: []
     gcp_kms: []
@@ -158,8 +158,8 @@ sops:
             NVhVRmlNQm4veDBXM3FXcERPYkYxRmcKgwbRJa5VdzoieE6tUykHX83k3DMWsAqc
             X3CAQICwF58jsYUEAO2T9QEhr6nu9T4UsH5hXEdXqZaPw/RPjFnw8A==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2026-06-21T08:36:04Z"
-    mac: ENC[AES256_GCM,data:IiUXFuOjPOvXQhBcgFm3FNbeyOMsBY7SzeO/SyRN9u/8tzTvEFnYN7yGfAnGSqnOLJK23DgxwzQ3cmqKXvJ7hzxW+pD/cY6zFdYDx3iHpl9Kjf5Ao+nD8ngtyDDsn1LFO0pBaxecdV1TKXuM78b0sargNUBoiyVS9p9KjKZViEU=,iv:BTtej4MU5Fxg6eQe9YNwoRSZTaal9ZJ9nq6QhfI0tGk=,tag:Fq1wHRexRA4SgMCvrr29eg==,type:str]
+    lastmodified: "2026-06-21T08:41:35Z"
+    mac: ENC[AES256_GCM,data:VpODaU7s+mX29AQruR198d0rXnNSjvWsMAnpclE/SOSlWp59NGb8lk+a9yfAmp9HTPQTm9v+4g3bj5eI64KIge/FprBL3EdoXmy8RltrOguyr2gg1RKpI8aEbEVMkRKokSNMeYXZ9wC29irSYJ5dGcgFN5hd7a+WvaK7lBDVIFc=,iv:aApLRIC9sQc9XODVonwIcijgu/f/0VGhZgVBuhU0Kyo=,tag:/MSqiTKzlDp4qiTBLrTvWA==,type:str]
     pgp: []
     encrypted_regex: .*
     version: 3.9.0
