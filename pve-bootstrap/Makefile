@@ -27,4 +27,4 @@ bootstrap: | $(INFRA_CA_FILE)
 	CA='$(INFRA_CA)' sops exec-file $(CONFIG_SOPS) \
 		'$(SOPS_ANSIBLE) {} pve_bootstrap \
 		sh -c "$(ANSIBLE) -i inventory site.yml -e @{section_vars} \
-		-e pve_security_ssh_ca_public_key=$$CA"'
+		-e pve_security_ssh_ca_public_key=\"$$CA\""'
