@@ -1,8 +1,5 @@
 ---
-# Trust the homelab INFRA SSH user CA so humans reach the host with short-lived
-# certificates instead of standing keys. The 'ansible' automation account keeps
-# its own key (machine identity) and is unaffected. Standing human keys stay as
-# break-glass; the CA is the normal path.
+# ansible's key-based auth is untouched; standing human keys remain break-glass.
 - name: PVE Security | SSH CA | Require the CA public key
   ansible.builtin.assert:
     that:

@@ -28,8 +28,7 @@
       ansible.builtin.set_fact:
         _bootstrap_user_ready: "{{ _ansible_ping is not failed and _ansible_ping is not skipped }}"
 
-# Creates the ansible user as root. Runs only when that user is not yet
-# reachable; skipped afterwards to avoid repeated root-login refusals.
+# Skipped after first run; avoids triggering fail2ban with repeated root logins.
 - name: Ensure ansible service account
   hosts: proxmox_nodes
   gather_facts: false

@@ -10,17 +10,12 @@ pve_network_bridges:
     vlan_aware: true
     mtu: 1500
 
-# Routed VM bridge, off by default so plain bridged networking on vmbr0 keeps
-# working on any router. When on, an internal bridge gives VMs routable
-# addresses and the upstream router needs a static route for the subnet to this
-# host. cidr is the host address on the bridge and the VM gateway.
+# Upstream router needs a static route to this host. cidr is the host address on the bridge (= VM gateway).
 pve_network_routed_enabled: false
 pve_network_routed_bridge: vmbr10
 pve_network_routed_cidr: "10.0.0.1/24"
 
-# Internet for the routed subnet. Enable when the upstream router will not NAT
-# the subnet to the WAN: the host masquerades only WAN-bound traffic, LAN-bound
-# traffic stays routed with real addresses.
+# Enable when the upstream router won't NAT the subnet. Only WAN-bound traffic is masqueraded.
 pve_network_routed_snat: false
 pve_network_routed_subnet: "10.0.0.0/24"
 pve_network_routed_lan_subnet: "192.168.0.0/24"

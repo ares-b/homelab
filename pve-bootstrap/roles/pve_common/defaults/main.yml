@@ -73,7 +73,6 @@ pve_common_sysctl_settings:
   # Prevent TIME_WAIT exhaustion
   net.ipv4.tcp_fin_timeout: 15
   net.ipv4.tcp_tw_reuse: 1
-  # Kernel panic: reboot automatically after 10s
   kernel.panic: 10
   kernel.panic_on_oops: 1
 

@@ -21,9 +21,7 @@
     - job.state | default('present') == 'present'
     - job.id not in existing_backup_ids
 
-# pvesh has no idempotent upsert, so only push an update when a managed field
-# actually differs. prune-backups and vmid changes are not diffed here; change
-# those by recreating the job.
+# pvesh has no upsert. prune-backups and vmid are not diffed; recreate the job to change them.
 - name: "PVE Backup | {{ job.id }} - update existing job"
   vars:
     _cur: "{{ existing_backup_jobs | selectattr('id', '==', job.id) | first | default({}) }}"

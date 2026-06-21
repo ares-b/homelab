@@ -27,7 +27,6 @@ KUBESEAL_ARGS = [
 ]
 
 
-# Human accounts: prompt for password. Service accounts: auto-generate.
 HUMAN_USERS = {"ares"}
 
 def gen_password() -> str:

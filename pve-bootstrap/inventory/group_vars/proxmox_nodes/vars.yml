@@ -42,10 +42,7 @@ pve_security_trusted_networks:
 
 pve_security_firewall_enabled: true
 
-# Humans reach the host with short-lived certs from the INFRA SSH CA
-# (ssh-ca/infra). The 'ansible' automation key is unaffected.
-# pve_security_ssh_ca_public_key is injected by the Makefile (-e) from
-# ssh-ca/infra/ca.pub, so the value has one source and no '..' path lives here.
+# pve_security_ssh_ca_public_key is injected at runtime by make from ssh-ca/infra/ca.pub.
 pve_security_ssh_ca_enabled: true
 pve_security_ssh_ca_logins:
   ares:
@@ -64,16 +61,13 @@ pve_network_bridges:
     vlan_aware: true
     mtu: 1500
 
-# Routed VM network. Freebox Pop holds the static route 10.0.0.0/24 to the PVE
-# host IP. Set to false to fall back to plain bridged 192.x.
-# The Freebox does not NAT the routed subnet, so the host provides internet.
+# Freebox holds static route 10.0.0.0/24 → PVE but doesn't NAT it, hence SNAT.
 pve_network_routed_enabled: true
 pve_network_routed_bridge: vmbr10
 pve_network_routed_cidr: "10.0.0.1/24"
 pve_network_routed_snat: true
 
-# /dev/nvme0n1 stays as local-lvm (PVE installer default) for k3s VM disks.
-# /dev/sda split into two LVs in one VG - online resize: lvextend + resize2fs
+# nvme0n1 keeps local-lvm (PVE installer default). sda: two LVs in one VG; resize via lvextend + resize2fs.
 pve_storage_pools:
   - name: sda-data
     state: present
@@ -176,7 +170,7 @@ pve_users_list:
     acl_path: "/"
 
 
-# Token secrets are printed once on first run and saved to .credentials/tokens.txt
+# Tokens are printed once and saved to .credentials/tokens.txt.
 pve_users_tokens:
   - userid: "terraform@pve"
     token_name: "terraform-token"

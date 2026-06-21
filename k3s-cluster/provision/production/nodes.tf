@@ -18,7 +18,6 @@ locals {
   disk_device_letters = ["b", "c", "d", "e", "f"]
 }
 
-# Fail fast if any node references a PVE node not declared in pve_node_addresses.
 resource "terraform_data" "validate_node_placement" {
   lifecycle {
     precondition {
@@ -30,8 +29,7 @@ resource "terraform_data" "validate_node_placement" {
   }
 }
 
-# Shared join token. Agents retry until the server is up, so node boot order
-# does not matter.
+# Agents retry on connect, so boot order is irrelevant.
 resource "random_password" "k3s_token" {
   length  = 48
   special = false
@@ -121,10 +119,7 @@ resource "proxmox_virtual_environment_vm" "k3s" {
   on_boot = true
 
   lifecycle {
-    # clone: cloud-init drive details churn on clone.
-    # user_data_file_id: cloud-init runs once at first boot. A template edit
-    # re-uploads the snippet for future nodes but must not rebuild a live node;
-    # that config converges via Ansible.
+    # user_data_file_id: cloud-init runs once; Ansible converges config after that.
     ignore_changes = [clone, initialization[0].user_data_file_id]
   }
 }
@@ -150,6 +145,4 @@ resource "local_file" "host_vars" {
   })
 }
 
-# Node configuration (disk LVM, k8s labels, k8s users) runs out of band via
-# Ansible after apply: `make -C k3s-cluster configure`. Terraform owns the
-# inventory and host_vars files above; Ansible consumes them.
+# Disk/labels/users config runs via Ansible after apply (`make configure`). Terraform writes the inventory above; Ansible reads it.
