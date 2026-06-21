@@ -43,7 +43,7 @@ edge_access:
     wireguard:
         extra_peers:
             - name: ENC[AES256_GCM,data:9/Y=,iv:N834nT8CX3zdCvWc6ecevnRGoJ07Fh0HHPy++MFMVz0=,tag:EgEjslTACqfxE1hAl+OPTQ==,type:str]
-              persistent_keepalive: ENC[AES256_GCM,data:/1E=,iv:8qZ8+QPe9kYJ9DHDzTqkjAIx5aKxs+KmM8Ltq3ju4Fg=,tag:hO1DKGDFLZCLbPkmieq+Pg==,type:int]
+              persistent_keepalive: ENC[AES256_GCM,data:0hE=,iv:DVW3JRPreDrVNdtrtQv7k3Ps8V/5wQdNpi0W5BGZWo0=,tag:r6y+cl8O0+LG9ujGMMjv2g==,type:int]
               preshared_key: ENC[AES256_GCM,data:+EnYPl27Ls0iha0b0CnLJPoy9rj3aVCR/QrxhW+Sh+0/INxXSODaCvJareU=,iv:Vbeu6aHM7AEZw5k+1gZtFAgyGE2D7IklMT+TsP1RnZI=,tag:WFGmveAo7Ba/BET0ZiFIkw==,type:str]
               public_key: ENC[AES256_GCM,data:uPsKujPewfQeT6FQ1U2IO8LzwTYw7uwknZ2VqRdxsbAAkpECYT5DayS5GYw=,iv:tHBEGVUMLMPSts0WTsACZIayh6igmG6978CxcI5itm8=,tag:9SL0YEV0qAI1cKRKaI7vHg==,type:str]
               wg_ip: ENC[AES256_GCM,data:wuVRXjihfz6tv4o=,iv:+pnd96ixcCVDwcYl/SAp9gVgkDCTzxQ+JvemDTZaWo4=,tag:xwIBM1AiF9JHDpt7/a3Nyw==,type:str]
@@ -140,9 +140,9 @@ pve_bootstrap:
     pve_notifications_smtp_password: ENC[AES256_GCM,data:QZ8XSs3Gh9V2bU8s40cHBAFq4cwWwa4AHCJZ2V88hJMDcRbWrxKsAe2hz/NakNPOJiatH0gYe969zflrTRuvw9i/H2Bv4iteG+IzNZ2hgRSdX7VRiwi6o6Hw,iv:UnPO5EaWg4Q1FgHpOSEfDidsoysxJfFEp/5Vfi4DTw4=,tag:gUJwyuw+fkaIp6NejF8b0A==,type:str]
     pve_notifications_smtp_port: ENC[AES256_GCM,data:ohoQ,iv:X0ePz97ZWo6Vm2wGfPQGQD6lUVp+sMoRkMWvRlT9XLg=,tag:o+JsFXw1YxeJYUtidKfYzg==,type:int]
     pve_notifications_smtp_user: ENC[AES256_GCM,data:q8YKtRPQLChFQLRAqce2zL6la7o3/BKi,iv:yVMBOgS7q0/xqWS0RRCgUpPJH2ABO+l0TU+qpc08VSk=,tag:pEYVyW9PtJ8yX1Qwu44OxQ==,type:str]
-    pve_secret_password_ares: ENC[AES256_GCM,data:qEysJmXs+qPijyD9Ysks,iv:ZWCEF7xipw9XxB6voCTi4xrWqtbMJpl+F6uDkfecl40=,tag:7VS4HehPXrjNew2yCXf1KA==,type:str]
-    pve_secret_password_packer: ENC[AES256_GCM,data:peXbOj+OB+TRFTS92YPk6/OBfdupCyqaA0I3Hqs0I6A=,iv:zN5M4RmrInNR7ok/Kx41NeVTjVEkxhRfYBWTo1D2VJ8=,tag:Yxs7+xWDJc1xp4SFOgsROA==,type:str]
-    pve_secret_password_terraform: ENC[AES256_GCM,data:kf9qhwvmnLQgsouEz/aKyxSo/vrY6absO8WI/wJCseo=,iv:Fc9D8WF6vN1IFXLe2iEFXePUZHpG29SLHKttbFemRqI=,tag:9+1OpM5Azx1U+otiX9RQ0A==,type:str]
+    pve_secret_password_ares: ENC[AES256_GCM,data:O1akaQgXI5nd+q9BJC8JYQSM25S5YfBRM/+MfJu2ztJCW++57dzQVYfUZA==,iv:IeIzs9g22Q820jKDtP2w7E5BD06EO53riFWkrB+dzPw=,tag:8kJCO8eiI/5dMytFEjPfgg==,type:str]
+    pve_secret_password_packer: ENC[AES256_GCM,data:n5to5nvRJ5TK7bLEOj+DZX6xadoJb0meexJ1VZiPSc9f0r6AEezS7ZTH3g==,iv:Up5NgOf3b+EOvCkBf4jNC93119IWSbPU/esBNAYav8U=,tag:oTjf9N9zH/6UHQYi/xxJ6w==,type:str]
+    pve_secret_password_terraform: ENC[AES256_GCM,data:R5/730Nw9BB7wfwBpEhVzZAC2CJSFXHJO4PaUvRIhbFZ03i//XRy5qtIfA==,iv:syRM5ke1GkbRkJlOcVA2i4rHIIcdeGYmFG7G1W5jqrY=,tag:eRSCxH1mmzA8Mxran7eZyQ==,type:str]
 sops:
     kms: []
     gcp_kms: []
@@ -158,8 +158,8 @@ sops:
             NVhVRmlNQm4veDBXM3FXcERPYkYxRmcKgwbRJa5VdzoieE6tUykHX83k3DMWsAqc
             X3CAQICwF58jsYUEAO2T9QEhr6nu9T4UsH5hXEdXqZaPw/RPjFnw8A==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2026-06-21T08:08:33Z"
-    mac: ENC[AES256_GCM,data:N5PEWbrHOA5YDrJmpq2f/L8gbtoZeyMseI+4rjL+shH3ZiUiH4+c1VPKuoEg/O0dKIa5zHEIzZ2PWw+W1GgSfzi+P/sjRM+L/CEzA26hyE20dKzXrhiut2Mq3nfT7offwK34SqfRsAz5loQWusrgszXSYpOSCgxGoXVrdx13kXY=,iv:GbBTtfwA9y2q6SrQgiQdZbi/n+ecnJh7ftzE/mHA8Ro=,tag:M3HA3VnJqSFNUaqgdF/8Fw==,type:str]
+    lastmodified: "2026-06-21T08:36:04Z"
+    mac: ENC[AES256_GCM,data:IiUXFuOjPOvXQhBcgFm3FNbeyOMsBY7SzeO/SyRN9u/8tzTvEFnYN7yGfAnGSqnOLJK23DgxwzQ3cmqKXvJ7hzxW+pD/cY6zFdYDx3iHpl9Kjf5Ao+nD8ngtyDDsn1LFO0pBaxecdV1TKXuM78b0sargNUBoiyVS9p9KjKZViEU=,iv:BTtej4MU5Fxg6eQe9YNwoRSZTaal9ZJ9nq6QhfI0tGk=,tag:Fq1wHRexRA4SgMCvrr29eg==,type:str]
     pgp: []
     encrypted_regex: .*
     version: 3.9.0
