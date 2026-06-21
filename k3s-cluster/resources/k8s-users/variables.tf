@@ -9,7 +9,8 @@ variable "k8s_users" {
     cluster_role = optional(string, "cluster-admin")
   }))
   default = {
-    ares = { cluster_role = "cluster-admin" }
+    ares = { cluster_role = "cluster-admin" },
+    aresro = { cluster_role = "view" }
   }
   description = "Kubernetes users to reconcile. Key is the username. Use 'make k3s-kubeconfig' to write ~/.kube/config from the issued token."
 }
