@@ -2,4 +2,4 @@
 creation_rules:
   - path_regex: .*\.sops\.ya?ml$
     age: age1aswdstmpfeyztl2z0mz7a336g2kxd9z4g3zje3tuf6lqzum3ravs0d42fd
-    encrypted_regex: "^(.*_token|.*_password|.*_hash|.*_private_key)$"
+    encrypted_regex: ".*"
