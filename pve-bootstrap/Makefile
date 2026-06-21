@@ -24,7 +24,7 @@ $(INFRA_CA_FILE):
 	@echo "missing $@; generate the CA first (see ssh-ca/README.md)" >&2; exit 1
 
 bootstrap: | $(INFRA_CA_FILE)
-	CA='$(INFRA_CA)' sops exec-file $(CONFIG_SOPS) \
+	ANSIBLE_EV_pve_security_ssh_ca_public_key='$(INFRA_CA)' \
+	sops exec-file $(CONFIG_SOPS) \
 		'$(SOPS_ANSIBLE) {} pve_bootstrap \
-		sh -c "$(ANSIBLE) -i inventory site.yml -e @{section_vars} \
-		-e pve_security_ssh_ca_public_key=\"$$CA\""'
+		$(ANSIBLE) -i inventory site.yml -e @{section_vars}'
