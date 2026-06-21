@@ -35,6 +35,7 @@ spec:
 
     postgresql:
       enabled: false
+      existingSecret: dagster-postgresql-secret
       postgresqlHost: postgresql-rw.postgresql.svc.cluster.local
       postgresqlUsername: dagster
       postgresqlDatabase: dagster
