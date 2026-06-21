@@ -63,7 +63,7 @@ storage:
 
 notifier:
   smtp:
-    address: submission://REDACTED_SMTP_HOST:587
+    address: submission://smtp-relay.brevo.com:587
     sender: "EdgeDatalab <noreply@edgedatalab.com>"
     subject: "[EdgeDatalab] {title}"
 

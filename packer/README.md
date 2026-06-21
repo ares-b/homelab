@@ -36,4 +36,4 @@ pveum acl modify / -user packer@pve -role PackerBuilder
 pveum user token add packer@pve packer-token --privsep 0
 ```
 
-`proxmox_username` = `REDACTED_PROXMOX_USER`
+`proxmox_username` = `packer@pve!packer-token`

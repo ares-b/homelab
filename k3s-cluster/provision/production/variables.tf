@@ -1,6 +1,6 @@
 variable "proxmox_endpoint" {
   type        = string
-  description = "Proxmox API endpoint, e.g. https://REDACTED_PVE_IP:8006/"
+  description = "Proxmox API endpoint, e.g. https://192.168.0.69:8006/"
 }
 
 variable "proxmox_api_token" {

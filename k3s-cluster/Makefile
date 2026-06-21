@@ -171,4 +171,4 @@ shutdown: drain
 	@echo "Waiting 60s for VMs to power off..."
 	@sleep 60
 	@echo "Shutting down PVE host..."
-	ssh REDACTED_PVE_IP "sudo shutdown -h now"
+	ssh 192.168.0.69 "sudo shutdown -h now"
