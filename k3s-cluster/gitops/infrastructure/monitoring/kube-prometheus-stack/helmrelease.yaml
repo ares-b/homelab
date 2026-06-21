@@ -6,6 +6,9 @@ metadata:
 spec:
   interval: 1h
   targetNamespace: monitoring
+  dependsOn:
+    - name: sealed-secrets
+      namespace: flux-system
   install:
     crds: CreateReplace
     remediation:

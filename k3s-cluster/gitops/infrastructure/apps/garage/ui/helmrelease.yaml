@@ -7,6 +7,8 @@ spec:
   interval: 1h
   targetNamespace: garage
   dependsOn:
+    - name: sealed-secrets
+      namespace: flux-system
     - name: kube-prometheus-stack
       namespace: flux-system
   install:

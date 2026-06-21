@@ -6,6 +6,9 @@ metadata:
 spec:
   interval: 1h
   targetNamespace: dagster
+  dependsOn:
+    - name: sealed-secrets
+      namespace: flux-system
   install:
     timeout: 15m
     remediation:
