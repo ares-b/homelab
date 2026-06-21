@@ -21,12 +21,6 @@ spec:
       retries: 3
       remediateLastFailure: true
     cleanupOnFail: true
-  valuesFrom:
-    - kind: Secret
-      name: dagster-helm-values
-      valuesKey: postgresql.postgresqlPassword
-      targetPath: postgresql.postgresqlPassword
-
   chart:
     spec:
       chart: dagster
