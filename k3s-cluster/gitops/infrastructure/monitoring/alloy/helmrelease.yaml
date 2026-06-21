@@ -141,9 +141,18 @@ spec:
             }
           }
 
+          // ── Glob expansion ───────────────────────────────────────────────────────
+          // loki.source.file does not expand globs — local.file_match does.
+          // It expands the __path__ globs from discovery.relabel and passes
+          // concrete file paths + all labels to loki.source.file.
+          local.file_match "pods" {
+            path_targets = discovery.relabel.pods.output
+            sync_period  = "5s"
+          }
+
           // ── File tailing ──────────────────────────────────────────────────────────
           loki.source.file "pods" {
-            targets    = discovery.relabel.pods.output
+            targets    = local.file_match.pods.targets
             forward_to = [loki.process.filter.receiver]
           }
 
