@@ -42,7 +42,7 @@ spec:
       enableReporting: false
 
       extraEnv:
-        - name: HOSTNAME
+        - name: NODE_NAME
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
@@ -78,7 +78,7 @@ spec:
             rule {
               source_labels = ["__meta_kubernetes_pod_node_name"]
               action        = "keep"
-              regex         = env("HOSTNAME")
+              regex         = env("NODE_NAME")
             }
 
             // Skip completed/failed pods
