@@ -1,4 +1,6 @@
 ---
+ansible_host: "{{ pve_host }}"
+
 pve_common_linux_users:
   - name: ares
     state: present
@@ -62,8 +64,8 @@ pve_network_bridges:
     vlan_aware: true
     mtu: 1500
 
-# Routed VM network. Freebox Pop holds the static route 10.0.0.0/24 to
-# REDACTED_PVE_IP. Set to false to fall back to plain bridged 192.x.
+# Routed VM network. Freebox Pop holds the static route 10.0.0.0/24 to the PVE
+# host IP. Set to false to fall back to plain bridged 192.x.
 # The Freebox does not NAT the routed subnet, so the host provides internet.
 pve_network_routed_enabled: true
 pve_network_routed_bridge: vmbr10
