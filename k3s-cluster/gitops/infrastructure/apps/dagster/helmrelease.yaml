@@ -10,13 +10,15 @@ spec:
     - name: sealed-secrets
       namespace: flux-system
   install:
-    timeout: 15m
+    timeout: 10m
     remediation:
-      retries: 3
+      retries: 1
   upgrade:
-    timeout: 15m
+    timeout: 10m
     remediation:
-      retries: 3
+      retries: 1
+      remediateLastFailure: true
+    cleanupOnFail: true
   chart:
     spec:
       chart: dagster
