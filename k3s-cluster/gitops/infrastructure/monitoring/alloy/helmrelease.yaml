@@ -1,0 +1,191 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: alloy
+  namespace: flux-system
+spec:
+  interval: 1h
+  targetNamespace: monitoring
+  dependsOn:
+    - name: loki
+      namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  chart:
+    spec:
+      chart: alloy
+      version: "1.10.0"
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+        namespace: flux-system
+  values:
+    controller:
+      type: daemonset
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+      volumes:
+        extra:
+          - name: alloy-storage
+            hostPath:
+              path: /var/lib/alloy
+              type: DirectoryOrCreate
+
+    alloy:
+      storagePath: /var/lib/alloy
+      enableReporting: false
+
+      extraEnv:
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+
+      mounts:
+        varlog: true
+        dockercontainers: false
+        extra:
+          - name: alloy-storage
+            mountPath: /var/lib/alloy
+
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+
+      configMap:
+        create: true
+        content: |
+          // ── Pod discovery ────────────────────────────────────────────────────────
+          discovery.kubernetes "pods" {
+            role = "pod"
+          }
+
+          // ── Path mapping + label extraction ──────────────────────────────────────
+          discovery.relabel "pods" {
+            targets = discovery.kubernetes.pods.targets
+
+            // Each DaemonSet instance handles only its own node
+            rule {
+              source_labels = ["__meta_kubernetes_pod_node_name"]
+              action        = "keep"
+              regex         = env("HOSTNAME")
+            }
+
+            // Skip completed/failed pods
+            rule {
+              source_labels = ["__meta_kubernetes_pod_phase"]
+              action        = "drop"
+              regex         = "Succeeded|Failed"
+            }
+
+            // Resolve pod uid + container name to log file path on node filesystem
+            rule {
+              source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+              separator     = "/"
+              regex         = "(.+)/(.+)"
+              target_label  = "__path__"
+              replacement   = "/var/log/pods/*$1/$2/*.log"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_namespace"]
+              target_label  = "namespace"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_pod_name"]
+              target_label  = "pod"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_pod_container_name"]
+              target_label  = "container"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_pod_node_name"]
+              target_label  = "node"
+            }
+
+            // Generic app label first; app.kubernetes.io/name overwrites if present
+            rule {
+              source_labels = ["__meta_kubernetes_pod_label_app"]
+              target_label  = "app"
+              regex         = "(.+)"
+              replacement   = "$1"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+              target_label  = "app"
+              regex         = "(.+)"
+              replacement   = "$1"
+            }
+
+            // Dagster run ID — enables per-run log queries in Grafana
+            rule {
+              source_labels = ["__meta_kubernetes_pod_label_dagster_run_id"]
+              target_label  = "dagster_run_id"
+              regex         = "(.+)"
+              replacement   = "$1"
+            }
+          }
+
+          // ── File tailing ──────────────────────────────────────────────────────────
+          loki.source.file "pods" {
+            targets    = discovery.relabel.pods.output
+            forward_to = [loki.process.filter.receiver]
+          }
+
+          // ── Processing pipeline ───────────────────────────────────────────────────
+          loki.process "filter" {
+            // Parse containerd CRI format; reassembles multiline entries via P/F flags
+            stage.cri {}
+
+            // ┌─ NAMESPACE FILTER ───────────────────────────────────────────────────┐
+            // │ Extend:      change regex to "dagster|other-namespace"               │
+            // │ Cluster-wide: remove this stage entirely                             │
+            // └──────────────────────────────────────────────────────────────────────┘
+            stage.match {
+              selector = `{namespace!~"dagster"}`
+              action   = "drop"
+            }
+
+            // Extract log level from Dagster's structured JSON output
+            stage.json {
+              expressions = {
+                level = "level",
+              }
+            }
+
+            stage.labels {
+              values = {
+                level = "",
+              }
+            }
+
+            forward_to = [loki.write.loki.receiver]
+          }
+
+          // ── Output ────────────────────────────────────────────────────────────────
+          loki.write "loki" {
+            endpoint {
+              url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+            }
+            external_labels = {
+              cluster = "k3s-production",
+            }
+          }
+
+    serviceMonitor:
+      enabled: true
