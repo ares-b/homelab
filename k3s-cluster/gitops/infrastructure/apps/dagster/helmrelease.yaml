@@ -90,7 +90,7 @@ spec:
 
     dagster-user-deployments:
       enabled: true
-      enableSubchart: false
+      enableSubchart: true
       deployments:
         - name: crypto-ai-analysis
           image:
