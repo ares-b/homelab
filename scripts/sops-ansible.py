@@ -13,7 +13,6 @@ yaml_file, section, *cmd = sys.argv[1:]
 with open(yaml_file) as f:
     config = yaml.safe_load(f) or {}
 
-# Callers can inject extra vars without quoting hell via ANSIBLE_EV_<key>=value
 extra = {k[len("ANSIBLE_EV_"):]: v for k, v in os.environ.items() if k.startswith("ANSIBLE_EV_")}
 data = {**config.get("common", {}), **config.get(section, {}), **extra}
 
