@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - flux-system
   - infrastructure-platform.yaml
+  - infrastructure-authelia.yaml
   - infrastructure-monitoring.yaml
   - infrastructure-apps.yaml
   - infrastructure-upgrade.yaml

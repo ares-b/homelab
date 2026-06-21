@@ -9,16 +9,24 @@ spec:
   dependsOn:
     - name: sealed-secrets
       namespace: flux-system
+    - name: cnpg
+      namespace: flux-system
   install:
     timeout: 10m
     remediation:
-      retries: 1
+      retries: 3
   upgrade:
     timeout: 10m
     remediation:
-      retries: 1
+      retries: 3
       remediateLastFailure: true
     cleanupOnFail: true
+  valuesFrom:
+    - kind: Secret
+      name: dagster-helm-values
+      valuesKey: postgresql.postgresqlPassword
+      targetPath: postgresql.postgresqlPassword
+
   chart:
     spec:
       chart: dagster

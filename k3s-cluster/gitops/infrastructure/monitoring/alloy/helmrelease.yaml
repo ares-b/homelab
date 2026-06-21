@@ -150,12 +150,6 @@ spec:
           loki.process "filter" {
             stage.cri {}
 
-            // To add a namespace: "dagster|other". To ship everything: remove this stage.
-            stage.match {
-              selector = `{namespace!~"dagster"}`
-              action   = "drop"
-            }
-
             stage.json {
               expressions = {
                 level = "level",
