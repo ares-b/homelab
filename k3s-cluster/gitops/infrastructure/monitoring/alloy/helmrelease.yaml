@@ -65,30 +65,26 @@ spec:
       configMap:
         create: true
         content: |
-          // ── Pod discovery ────────────────────────────────────────────────────────
           discovery.kubernetes "pods" {
             role = "pod"
           }
 
-          // ── Path mapping + label extraction ──────────────────────────────────────
           discovery.relabel "pods" {
             targets = discovery.kubernetes.pods.targets
 
-            // Each DaemonSet instance handles only its own node
+            // Scope each DaemonSet pod to its own node
             rule {
               source_labels = ["__meta_kubernetes_pod_node_name"]
               action        = "keep"
               regex         = env("NODE_NAME")
             }
 
-            // Skip completed/failed pods
             rule {
               source_labels = ["__meta_kubernetes_pod_phase"]
               action        = "drop"
               regex         = "Succeeded|Failed"
             }
 
-            // Resolve pod uid + container name to log file path on node filesystem
             rule {
               source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
               separator     = "/"
@@ -117,7 +113,7 @@ spec:
               target_label  = "node"
             }
 
-            // Generic app label first; app.kubernetes.io/name overwrites if present
+            // app label: generic first, app.kubernetes.io/name wins if set
             rule {
               source_labels = ["__meta_kubernetes_pod_label_app"]
               target_label  = "app"
@@ -132,7 +128,6 @@ spec:
               replacement   = "$1"
             }
 
-            // Dagster run ID — enables per-run log queries in Grafana
             rule {
               source_labels = ["__meta_kubernetes_pod_label_dagster_run_id"]
               target_label  = "dagster_run_id"
@@ -141,36 +136,26 @@ spec:
             }
           }
 
-          // ── Glob expansion ───────────────────────────────────────────────────────
-          // loki.source.file does not expand globs — local.file_match does.
-          // It expands the __path__ globs from discovery.relabel and passes
-          // concrete file paths + all labels to loki.source.file.
+          // local.file_match expands __path__ globs; loki.source.file requires concrete paths
           local.file_match "pods" {
             path_targets = discovery.relabel.pods.output
             sync_period  = "5s"
           }
 
-          // ── File tailing ──────────────────────────────────────────────────────────
           loki.source.file "pods" {
             targets    = local.file_match.pods.targets
             forward_to = [loki.process.filter.receiver]
           }
 
-          // ── Processing pipeline ───────────────────────────────────────────────────
           loki.process "filter" {
-            // Parse containerd CRI format; reassembles multiline entries via P/F flags
             stage.cri {}
 
-            // ┌─ NAMESPACE FILTER ───────────────────────────────────────────────────┐
-            // │ Extend:      change regex to "dagster|other-namespace"               │
-            // │ Cluster-wide: remove this stage entirely                             │
-            // └──────────────────────────────────────────────────────────────────────┘
+            // To add a namespace: "dagster|other". To ship everything: remove this stage.
             stage.match {
               selector = `{namespace!~"dagster"}`
               action   = "drop"
             }
 
-            // Extract log level from Dagster's structured JSON output
             stage.json {
               expressions = {
                 level = "level",
@@ -186,7 +171,6 @@ spec:
             forward_to = [loki.write.loki.receiver]
           }
 
-          // ── Output ────────────────────────────────────────────────────────────────
           loki.write "loki" {
             endpoint {
               url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
