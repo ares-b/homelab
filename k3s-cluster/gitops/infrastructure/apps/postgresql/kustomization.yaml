@@ -4,7 +4,11 @@ resources:
   - namespace.yaml
   - sealed-dagster-cnpg-role.yaml
   - sealed-iceberg-cnpg-role.yaml
+  - sealed-lakekeeper-cnpg-role.yaml
+  - sealed-openfga-cnpg-role.yaml
   - cnpg-secret-rbac.yaml
   - cluster.yaml
   - dagster-database.yaml
   - iceberg-database.yaml
+  - lakekeeper-database.yaml
+  - openfga-database.yaml

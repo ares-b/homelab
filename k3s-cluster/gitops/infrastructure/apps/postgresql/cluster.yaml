@@ -3,6 +3,9 @@ kind: Cluster
 metadata:
   name: postgresql
   namespace: postgresql
+  annotations:
+    # Never let Flux prune the database cluster (e.g. during Kustomization moves).
+    kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   instances: 1
   imageName: ghcr.io/cloudnative-pg/postgresql:17.10
@@ -39,5 +42,19 @@ spec:
         superuser: false
         passwordSecret:
           name: iceberg-cnpg-role
+      - name: lakekeeper
+        ensure: present
+        login: true
+        createdb: false
+        superuser: false
+        passwordSecret:
+          name: lakekeeper-cnpg-role
+      - name: openfga
+        ensure: present
+        login: true
+        createdb: false
+        superuser: false
+        passwordSecret:
+          name: openfga-cnpg-role
   monitoring:
     enablePodMonitor: true

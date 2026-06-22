@@ -1,0 +1,13 @@
+# Lakekeeper exposes metrics on the pod's :9000 (named "metrics"), not via the Service.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: lakekeeper
+  namespace: lakekeeper
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: lakekeeper
+  podMetricsEndpoints:
+    - port: metrics
+      interval: 30s

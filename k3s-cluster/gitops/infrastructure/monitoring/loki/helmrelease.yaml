@@ -29,6 +29,9 @@ spec:
 
     loki:
       auth_enabled: false
+      # Disable anonymous usage reporting to stats.grafana.org.
+      analytics:
+        reporting_enabled: false
       commonConfig:
         replication_factor: 1
       storage:

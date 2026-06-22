@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: lakekeeper-encryption
+  namespace: lakekeeper
+spec:
+  encryptedData:
+    encryptionKey: AgBI45Ds0gt+yctKI9b4TY4ClxrfElwVfjFIqH801Uk+2H9HYlwjNpvrwtREmrd6ZkEm4II0cQe9jS1ewsjewgsc5ojvbfFISpsSy+HKhK/ua+HZtrC3ZCKBPHevIz7Kgj9q6A/gn0KHMZmEe0NfWn2JHHvMBo+TnwaB8uNPokC5I9cX8NRdzDZWajpORr4AX9JWYmupiAqn1uKGJKd4QvxRjJG46nSmK48+dYkcE/uSwz0GFgP83UvMYat3xkLm/Np8GMuFN3vILuYWXFnNlEZdJScNK0gp5nZPiApWRhkFU+V+7ZbcJe9pJ/bAOn3xWZXBExbwcXeccjoPVUWYDbP1xd3pzT1xk7H/axqeH//UlZfEpYknYE3sMAZjdFPfdgwijy06q2rLcdkrs0P2YPxcIb8WK1JTkQ0SX+cTmLiMa0ACukhiy7qs3PrYl3CR1/rEpigEzKl6BEp4aUHxSlZMiCNMw416oDaQ28iu2ngNN4jy9bWJfIZXUL78Fddp1jfGjhfQuW8xhx9sjq5d4NLJkZsYhM6fW11Ub4G9VAws5hiY3OdQ8eN1rspjFPNYb5e950ZRGAt+8Ri7iWKsP0VTT2n1G0NKtEDEaTLXFuT0s5Odmgam0XQRDLdOpuKIzK6VNnTOIp7PrmmPCA4s+pHECuvGSOKBidM2N2flcOMggdX7rD2ttNOoA5XsFHUg/o34ugfr9cn2K360UrhAT3tU7pGVdfOig0pr8DZoqyrISgdauCbdJcU/Fi0OLXj2+4WHlQnBLyMxR2I8phwR5YCS
+  template:
+    metadata:
+      name: lakekeeper-encryption
+      namespace: lakekeeper

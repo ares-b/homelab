@@ -1,4 +1,4 @@
-# Not active — add to kustomization.yaml when connection pooling is needed.
+# Not active. Add to kustomization.yaml when connection pooling is needed.
 apiVersion: postgresql.cnpg.io/v1
 kind: Pooler
 metadata:

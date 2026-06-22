@@ -5,6 +5,11 @@ metadata:
   namespace: kube-system
 spec:
   valuesContent: |-
+    # Disable Traefik anonymous usage stats and version phone-home.
+    globalArguments:
+      - "--global.checknewversion=false"
+      - "--global.sendanonymoususage=false"
+
     persistence:
       enabled: true
       storageClass: local-path

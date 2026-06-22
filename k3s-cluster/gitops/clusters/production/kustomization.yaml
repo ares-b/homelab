@@ -5,5 +5,8 @@ resources:
   - infrastructure-platform.yaml
   - infrastructure-authelia.yaml
   - infrastructure-monitoring.yaml
-  - infrastructure-apps.yaml
+  - infrastructure-postgresql.yaml
+  - infrastructure-garage.yaml
+  - infrastructure-dagster.yaml
+  - infrastructure-lakekeeper.yaml
   - infrastructure-upgrade.yaml

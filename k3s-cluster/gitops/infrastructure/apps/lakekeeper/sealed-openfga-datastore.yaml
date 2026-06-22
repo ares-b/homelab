@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: openfga-datastore
+  namespace: lakekeeper
+spec:
+  encryptedData:
+    uri: AgBzibqXTHrYCY0+oXkKILvrTaGqoYLtg8/KdnmipeaCv7GBk+QmGVqm+Ef1NIWMRGHD9GU4eJT9bi1KCYng71ql/ChfY4Qg8jNVSm6ahmXdtQ2ojbTb15o1jIIna1yl5garBSxiGLpqh0qGgRSLXAeKXqLY2w6aoE1cEuul2I1nEJR2O/IrJ2IgV9r7Kxq7uEzM+k7KsrE25zo+WOS2CUwelVTSc9Wf5K+0d0nJt6dlPnogqe33Y3zOlNO/a3vbaH6McMLgatutLa8Nhos8nxOaX83Cq4xlbKj95ar+33BOe1CHRrZw8DGYtxAjzJcG+mymGLkia6mjFvsfocVIPYfMgR7ffNxG9qZspUkik6ix+m1N9A6ScwArzZyhA9r12/hIP1W/FU01X9FpQwvo3wFnjMC17+GhJQsRR88APLnD3yQrivKHI2pBLDt/CrsG0Iq1PZGoLuKCdQnXIrqeV2OSx1QJbMPU+K/vIs05hkv8ow1WTXGkehLmpsiWiX8AK9kQokqnZ/Hgq6LQEqKgb5ysJpU4VwxWU3/bkmR5rY0xfnKpsqto/5NtcFqNqheCA2izUscJBFjl/3uzEBM4iE+lddghE9aa6DuQD7UbShaxKUykWruqbTWw0YNX50A8i3o7DA8/dICE9aL+BFIvPB1Le9hjXmqnWu0nAjlb4YtSCxYhzHpG78rgsmF1OJKs6BEmxggz6zgU6knD5YzuzC30RbBlqwpYInQumc9l9b+B8Y29AdxCPUgUnWM7fQGUhU+JX6AJrr1+tapJc98kTznZapPs5hvd2Ht4XHIIn42Sgt+mHQtsaJFLWZyg5k4PgVZsarOzyhd1uNWiasKlGUcVSWP5xFxhyigNGBarGlYNi8x5poab5A==
+  template:
+    metadata:
+      name: openfga-datastore
+      namespace: lakekeeper

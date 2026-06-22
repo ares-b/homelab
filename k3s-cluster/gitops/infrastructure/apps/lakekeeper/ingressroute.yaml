@@ -1,0 +1,18 @@
+# No Authelia ForwardAuth here: Lakekeeper authenticates clients natively (OIDC + k8s SA),
+# so bearer-token clients (Dagster, DuckDB) must reach the API unproxied.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: lakekeeper
+  namespace: lakekeeper
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`lakekeeper.int.edgedatalab.com`)
+      kind: Rule
+      services:
+        - name: lakekeeper
+          port: 8181
+  tls:
+    certResolver: letsencrypt

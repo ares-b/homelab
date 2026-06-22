@@ -1,0 +1,117 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: lakekeeper
+  namespace: flux-system
+spec:
+  interval: 1h
+  targetNamespace: lakekeeper
+  dependsOn:
+    - name: sealed-secrets
+      namespace: flux-system
+    - name: cnpg
+      namespace: flux-system
+  install:
+    createNamespace: false
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  chart:
+    spec:
+      chart: lakekeeper
+      version: "0.11.0"
+      sourceRef:
+        kind: HelmRepository
+        name: lakekeeper
+        namespace: flux-system
+  values:
+    # Flux waits for readiness, so the db-migration must be a normal resource, not a
+    # post-install hook (which would deadlock: pods wait for migration, hook waits for pods).
+    helmWait: true
+
+    # Names resources "lakekeeper" (not "lakekeeper-lakekeeper") so the Service, SA, and
+    # in-cluster URI match the ingress, Cedar RBAC, and Dagster client config.
+    fullnameOverride: lakekeeper
+
+    # Lakekeeper's own catalog DB is external CNPG. OpenFGA (authz) is deployed by the
+    # chart but pointed at CNPG too (its bundled postgres is disabled below).
+    postgresql:
+      enabled: false
+    internalOpenFGA: true
+
+    externalDatabase:
+      type: postgres
+      host_read: postgresql-r.postgresql.svc.cluster.local
+      host_write: postgresql-rw.postgresql.svc.cluster.local
+      port: 5432
+      database: lakekeeper
+      userSecret: lakekeeper-pg
+      userSecretKey: postgresql-user
+      passwordSecret: lakekeeper-pg
+      passwordSecretKey: postgresql-password
+
+    secretBackend:
+      type: Postgres
+      postgres:
+        encryptionKeySecret: lakekeeper-encryption
+        encryptionKeySecretKey: encryptionKey
+
+    auth:
+      # In-cluster clients (Dagster) authenticate with their projected ServiceAccount token.
+      k8s:
+        enabled: true
+        audience: lakekeeper
+        createClusterRoleBinding: true
+      # Humans and DuckDB authenticate through Authelia.
+      oauth2:
+        providerUri: https://auth.int.edgedatalab.com
+        audience: lakekeeper
+        ui:
+          clientID: lakekeeper
+          scopes: "openid profile email groups"
+
+    authz:
+      backend: openfga
+
+    # OpenFGA deployed by the chart, backed by CNPG (bundled postgres disabled).
+    # Lakekeeper auto-initialises its OpenFGA store + authorization model at bootstrap.
+    openfga:
+      replicaCount: 2
+      datastore:
+        engine: postgres
+        migrationType: initContainer
+        uriSecret: openfga-datastore
+      postgresql:
+        enabled: false
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 500m
+          memory: 256Mi
+
+    catalog:
+      image:
+        repository: quay.io/lakekeeper/catalog
+        tag: v0.12.4
+      replicas: 2
+      ingress:
+        enabled: false
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: "1"
+          memory: 512Mi
+      extraEnv:
+        - name: LAKEKEEPER__OPENID_ROLES_CLAIM
+          value: "groups"
+        - name: LAKEKEEPER__OPENID_SUBJECT_CLAIM
+          value: "sub"
+        # The UI (browser SPA) needs its own provider URI for the post-callback token exchange.
+        - name: LAKEKEEPER__UI__OPENID_PROVIDER_URI
+          value: "https://auth.int.edgedatalab.com"

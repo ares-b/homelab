@@ -1,0 +1,18 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: infrastructure-postgresql
+  namespace: flux-system
+spec:
+  interval: 10m
+  retryInterval: 2m
+  # Needs the PodMonitor CRD (CNPG cluster sets enablePodMonitor).
+  dependsOn:
+    - name: infrastructure-monitoring
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: ./k3s-cluster/gitops/infrastructure/apps/postgresql
+  prune: true
+  wait: true
+  timeout: 10m
