@@ -1,16 +1,12 @@
-output "bucket_names" {
-  description = "Lakehouse bucket names."
-  value       = { for layer, bucket in garage_bucket.lakehouse : layer => bucket.global_alias }
+# Used once to register the warehouse storage credential in Lakekeeper.
+output "warehouse_key_id" {
+  description = "Warehouse access key ID."
+  sensitive   = true
+  value       = garage_key.warehouse.id
 }
 
-output "key_ids" {
-  description = "Access key IDs per layer."
+output "warehouse_key_secret" {
+  description = "Warehouse secret access key."
   sensitive   = true
-  value       = { for layer, key in garage_key.lakehouse : layer => key.id }
-}
-
-output "iceberg_key_id" {
-  description = "Iceberg warehouse access key ID."
-  sensitive   = true
-  value       = garage_key.iceberg.id
+  value       = garage_key.warehouse.secret_access_key
 }
