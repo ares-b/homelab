@@ -16,8 +16,14 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CONFIG_SOPS = REPO_ROOT / "config.sops.yaml"
-SEALED_DAGSTER_CNPG = REPO_ROOT / "k3s-cluster/gitops/infrastructure/apps/postgresql/sealed-dagster-cnpg-role.yaml"
-SEALED_DAGSTER_DB = REPO_ROOT / "k3s-cluster/gitops/infrastructure/apps/dagster/sealed-dagster-db.yaml"
+POSTGRESQL_DIR = REPO_ROOT / "k3s-cluster/gitops/infrastructure/apps/postgresql"
+DAGSTER_DIR = REPO_ROOT / "k3s-cluster/gitops/infrastructure/apps/dagster"
+SEALED_DAGSTER_CNPG = POSTGRESQL_DIR / "sealed-dagster-cnpg-role.yaml"
+SEALED_DAGSTER_DB = DAGSTER_DIR / "sealed-dagster-db.yaml"
+SEALED_ICEBERG_CNPG = POSTGRESQL_DIR / "sealed-iceberg-cnpg-role.yaml"
+SEALED_ICEBERG_CATALOG = DAGSTER_DIR / "sealed-iceberg-catalog.yaml"
+
+ICEBERG_CATALOG_HOST = "postgresql-rw.postgresql.svc.cluster.local:5432"
 
 KUBESEAL_ARGS = [
     "kubeseal",
@@ -81,6 +87,23 @@ def rotate_dagster_db() -> None:
     print(f"  {SEALED_DAGSTER_DB.relative_to(REPO_ROOT)}")
 
 
+def rotate_iceberg_db() -> None:
+    password = gen_password()
+
+    print("Sealing iceberg-cnpg-role (postgresql namespace)...")
+    sealed = seal("iceberg-cnpg-role", "postgresql", password=password, username="iceberg")
+    SEALED_ICEBERG_CNPG.write_text(sealed)
+
+    print("Sealing iceberg-catalog (dagster namespace)...")
+    uri = f"postgresql+psycopg2://iceberg:{password}@{ICEBERG_CATALOG_HOST}/iceberg"
+    sealed = seal("iceberg-catalog", "dagster", ICEBERG_CATALOG_URI=uri)
+    SEALED_ICEBERG_CATALOG.write_text(sealed)
+
+    print("Done. Commit and push both sealed secrets — Flux will apply them.")
+    print(f"  {SEALED_ICEBERG_CNPG.relative_to(REPO_ROOT)}")
+    print(f"  {SEALED_ICEBERG_CATALOG.relative_to(REPO_ROOT)}")
+
+
 def rotate_pve_passwords(users: list[str]) -> None:
     for user in users:
         key = f"pve_secret_password_{user}"
@@ -96,6 +119,7 @@ def main() -> None:
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("dagster-db", help="Rotate CNPG dagster DB password (both sealed secrets)")
+    sub.add_parser("iceberg-db", help="Rotate CNPG iceberg DB password (role + catalog URI secrets)")
 
     pve = sub.add_parser("pve-passwords", help="Rotate PVE user passwords in config.sops.yaml")
     pve.add_argument(
@@ -112,6 +136,8 @@ def main() -> None:
 
     if args.cmd == "dagster-db":
         rotate_dagster_db()
+    elif args.cmd == "iceberg-db":
+        rotate_iceberg_db()
     elif args.cmd == "pve-passwords":
         rotate_pve_passwords(args.users)
 

@@ -8,3 +8,9 @@ output "key_ids" {
   sensitive   = true
   value       = { for layer, key in garage_key.lakehouse : layer => key.id }
 }
+
+output "iceberg_key_id" {
+  description = "Iceberg warehouse access key ID."
+  sensitive   = true
+  value       = garage_key.iceberg.id
+}

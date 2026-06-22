@@ -37,3 +37,27 @@ resource "null_resource" "sealed_s3" {
 
   depends_on = [garage_bucket_permission.lakehouse]
 }
+
+resource "null_resource" "sealed_iceberg_s3" {
+  triggers = {
+    key_id     = garage_key.iceberg.id
+    key_secret = garage_key.iceberg.secret_access_key
+  }
+
+  provisioner "local-exec" {
+    environment = {
+      KEY_ID     = garage_key.iceberg.id
+      KEY_SECRET = garage_key.iceberg.secret_access_key
+    }
+    command = <<-EOT
+      KUBECONFIG=${var.kubeconfig_path} kubectl create secret generic iceberg-s3-secret \
+        --namespace=dagster \
+        --from-literal=ICEBERG_S3_ACCESS_KEY_ID="$KEY_ID" \
+        --from-literal=ICEBERG_S3_SECRET_ACCESS_KEY="$KEY_SECRET" \
+        --dry-run=client -o yaml | \
+      ${local.kubeseal_cmd} > ${local.gitops_dagster_dir}/sealed-iceberg-s3-secret.yaml
+    EOT
+  }
+
+  depends_on = [garage_bucket_permission.iceberg]
+}

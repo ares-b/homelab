@@ -3,6 +3,8 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - sealed-dagster-cnpg-role.yaml
+  - sealed-iceberg-cnpg-role.yaml
   - cnpg-secret-rbac.yaml
   - cluster.yaml
   - dagster-database.yaml
+  - iceberg-database.yaml

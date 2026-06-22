@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: iceberg-catalog
+  namespace: dagster
+spec:
+  encryptedData:
+    ICEBERG_CATALOG_URI: AgBhyE3hXR9tCBs/ceKkHAw6JE41aDAqAv+Y3UFb/BNV810nlOlPFAjXxY2cLG9dUti6g85AYSCn4Cw7J+/lFeYyx3d2O+5Cc4Xd4zi5NFEjlvBz+gP9D7mqq52+DUPYG5vp98wkt5BZtSHCwJcqlr+zmMAeCaeeWzGDJGbuzltqJtabw+5WvcdR/YNByssA658G8ugy9zNraVUhoZXdiZ8OeOsNAVkmgVoOLpKaBE7DbMIocPZlnoperxwggG6f+FYXMrEHUGFK0Ex9u1EjxB04BQR+b8gAbY5niU0hJpvzD7052Wd/Fn2FzeEPlvGxbBERBGm8cFrcX1GE5PJNLVKblr0vIKw4GQYYsZXpBljqO4Vmr7A/wUar1J4hb38LTmohqXvnEH7E1l8G/+ZQ4JIyQnwJPxoYrUgnrnYaQpfXWjUcBHQ6deO1KCKrMyxw4/jNsN/cB6TVONCGYhc+ywD6GvPiAuyAOmG0rlGSacV44AQMb3NGR4AJU/Nzk73IFeiNk0klWA9+tIfCgj26URhdQpME1skotCA+k52dmVPGxGGxiNn6d1tjfkSI1lT5i5aX+DYFmgrYRG4xsJ9oQd5s20djXfPjwMFPmTD986cxma6YW6gm4N/Y/rWk1/2jkBiEEBn79KOR3pGLrM0qbqMM4KJIGPTb4ed0oR0Xu9Z1ikLxAxpZ1vqhr9xmJBSCHniVUWtId1Rgst4MCzhf7xGYx3qXEH48vIUhkurWoXIZbI360KTHZPYiuZlNZR9SXqvNSmyjC14aq37o/M+N9mb/PvZgbuI+yk5f0octKI0Hp4Qn8Ig7zyKyICyAyIYQVTkW5Bc2PwlYaw0B03vBZi+RYCr33BfPpG5S1Z/eSL882AE=
+  template:
+    metadata:
+      name: iceberg-catalog
+      namespace: dagster

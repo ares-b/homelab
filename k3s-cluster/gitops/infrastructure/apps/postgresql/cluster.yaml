@@ -32,5 +32,12 @@ spec:
         superuser: false
         passwordSecret:
           name: dagster-cnpg-role
+      - name: iceberg
+        ensure: present
+        login: true
+        createdb: false
+        superuser: false
+        passwordSecret:
+          name: iceberg-cnpg-role
   monitoring:
     enablePodMonitor: true

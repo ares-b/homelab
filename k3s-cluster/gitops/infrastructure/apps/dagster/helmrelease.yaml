@@ -55,11 +55,18 @@ spec:
           loadInclusterConfig: true
           imagePullPolicy: IfNotPresent
           jobNamespace: dagster
+          envVars:
+            - "ICEBERG_WAREHOUSE=s3://lakehouse-warehouse/"
+            - "ICEBERG_S3_ENDPOINT=http://garage.garage.svc.cluster.local:3900"
+            - "ICEBERG_CATALOG_NAME=dca"
+            - "ICEBERG_S3_REGION=garage"
           envSecrets:
             - name: s3-raw-secret
             - name: s3-master-secret
             - name: s3-product-secret
             - name: dagster-api-keys
+            - name: iceberg-s3-secret
+            - name: iceberg-catalog
           resources:
             requests:
               cpu: 250m
@@ -115,11 +122,22 @@ spec:
             - "--module-name"
             - "orchestration"
           port: 3030
+          env:
+            - name: ICEBERG_WAREHOUSE
+              value: "s3://lakehouse-warehouse/"
+            - name: ICEBERG_S3_ENDPOINT
+              value: "http://garage.garage.svc.cluster.local:3900"
+            - name: ICEBERG_CATALOG_NAME
+              value: "dca"
+            - name: ICEBERG_S3_REGION
+              value: "garage"
           envSecrets:
             - name: s3-raw-secret
             - name: s3-master-secret
             - name: s3-product-secret
             - name: dagster-api-keys
+            - name: iceberg-s3-secret
+            - name: iceberg-catalog
           resources:
             requests:
               cpu: 100m
