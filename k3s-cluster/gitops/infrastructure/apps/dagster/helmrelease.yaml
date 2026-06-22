@@ -56,17 +56,10 @@ spec:
           imagePullPolicy: IfNotPresent
           jobNamespace: dagster
           envVars:
-            - "ICEBERG_WAREHOUSE=s3://lakehouse-warehouse/"
-            - "ICEBERG_S3_ENDPOINT=http://garage.garage.svc.cluster.local:3900"
-            - "ICEBERG_CATALOG_NAME=dca"
-            - "ICEBERG_S3_REGION=garage"
+            - "LAKEKEEPER_URI=http://lakekeeper.lakekeeper.svc.cluster.local:8181/catalog"
+            - "LAKEKEEPER_WAREHOUSE=crypto-ai-analysis"
           envSecrets:
-            - name: s3-raw-secret
-            - name: s3-master-secret
-            - name: s3-product-secret
             - name: dagster-api-keys
-            - name: iceberg-s3-secret
-            - name: iceberg-catalog
           resources:
             requests:
               cpu: 250m
@@ -83,6 +76,19 @@ spec:
                       - matchExpressions:
                           - key: node-role.kubernetes.io/control-plane
                             operator: DoesNotExist
+              volumes:
+                - name: lakekeeper-token
+                  projected:
+                    sources:
+                      - serviceAccountToken:
+                          path: lakekeeper
+                          audience: lakekeeper
+                          expirationSeconds: 3600
+            containerConfig:
+              volumeMounts:
+                - name: lakekeeper-token
+                  mountPath: /var/run/secrets/tokens
+                  readOnly: true
 
     dagsterWebserver:
       replicaCount: 1
@@ -116,28 +122,31 @@ spec:
         - name: crypto-ai-analysis
           image:
             repository: ghcr.io/ares-b/crypto_ai_analysis
-            tag: v0.2.4
+            tag: v0.3.0
             pullPolicy: Always
           dagsterApiGrpcArgs:
             - "--module-name"
             - "orchestration"
           port: 3030
           env:
-            - name: ICEBERG_WAREHOUSE
-              value: "s3://lakehouse-warehouse/"
-            - name: ICEBERG_S3_ENDPOINT
-              value: "http://garage.garage.svc.cluster.local:3900"
-            - name: ICEBERG_CATALOG_NAME
-              value: "dca"
-            - name: ICEBERG_S3_REGION
-              value: "garage"
+            - name: LAKEKEEPER_URI
+              value: "http://lakekeeper.lakekeeper.svc.cluster.local:8181/catalog"
+            - name: LAKEKEEPER_WAREHOUSE
+              value: "crypto-ai-analysis"
           envSecrets:
-            - name: s3-raw-secret
-            - name: s3-master-secret
-            - name: s3-product-secret
             - name: dagster-api-keys
-            - name: iceberg-s3-secret
-            - name: iceberg-catalog
+          volumes:
+            - name: lakekeeper-token
+              projected:
+                sources:
+                  - serviceAccountToken:
+                      path: lakekeeper
+                      audience: lakekeeper
+                      expirationSeconds: 3600
+          volumeMounts:
+            - name: lakekeeper-token
+              mountPath: /var/run/secrets/tokens
+              readOnly: true
           resources:
             requests:
               cpu: 100m

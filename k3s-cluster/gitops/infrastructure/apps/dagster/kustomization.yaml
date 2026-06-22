@@ -3,12 +3,7 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - sealed-dagster-db.yaml
-  - sealed-s3-raw-secret.yaml
-  - sealed-s3-master-secret.yaml
-  - sealed-s3-product-secret.yaml
   - sealed-dagster-api-keys.yaml
-  - sealed-iceberg-s3-secret.yaml
-  - sealed-iceberg-catalog.yaml
   - helmrepository.yaml
   - helmrelease.yaml
   - ingressroute.yaml
