@@ -1,3 +1,4 @@
-resource "garage_bucket" "warehouse" {
-  global_alias = "lakehouse-warehouse"
+resource "garage_bucket" "this" {
+  for_each     = toset(var.buckets)
+  global_alias = each.value
 }

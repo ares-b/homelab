@@ -1,12 +1,16 @@
-# Used once to register the warehouse storage credential in Lakekeeper.
-output "warehouse_key_id" {
-  description = "Warehouse access key ID."
+output "key_ids" {
+  description = "Access key IDs by key name."
   sensitive   = true
-  value       = garage_key.warehouse.id
+  value       = { for name, key in garage_key.this : name => key.id }
 }
 
-output "warehouse_key_secret" {
-  description = "Warehouse secret access key."
+output "key_secrets" {
+  description = "Secret access keys by key name."
   sensitive   = true
-  value       = garage_key.warehouse.secret_access_key
+  value       = { for name, key in garage_key.this : name => key.secret_access_key }
+}
+
+output "bucket_ids" {
+  description = "Bucket IDs by global alias."
+  value       = { for alias, bucket in garage_bucket.this : alias => bucket.id }
 }
