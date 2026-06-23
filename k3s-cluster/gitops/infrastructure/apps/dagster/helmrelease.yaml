@@ -106,7 +106,7 @@ spec:
         - name: crypto-ai-analysis
           image:
             repository: ghcr.io/ares-b/crypto_ai_analysis
-            tag: v0.3.3
+            tag: v0.3.4
             pullPolicy: Always
           dagsterApiGrpcArgs:
             - "--module-name"
