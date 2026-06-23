@@ -48,6 +48,8 @@ spec:
       service:
         port: 5432
 
+    # Catalog config (env, token, api keys) lives per code location and reaches runs via
+    # includeConfigInLaunchedRuns, so the shared launcher only sets run-pod placement/size.
     runLauncher:
       type: K8sRunLauncher
       config:
@@ -55,11 +57,6 @@ spec:
           loadInclusterConfig: true
           imagePullPolicy: IfNotPresent
           jobNamespace: dagster
-          envVars:
-            - "LAKEKEEPER_URI=http://lakekeeper.lakekeeper.svc.cluster.local:8181/catalog"
-            - "LAKEKEEPER_WAREHOUSE=crypto-ai-analysis"
-          envSecrets:
-            - name: dagster-api-keys
           resources:
             requests:
               cpu: 250m
@@ -76,19 +73,6 @@ spec:
                       - matchExpressions:
                           - key: node-role.kubernetes.io/control-plane
                             operator: DoesNotExist
-              volumes:
-                - name: lakekeeper-token
-                  projected:
-                    sources:
-                      - serviceAccountToken:
-                          path: lakekeeper
-                          audience: lakekeeper
-                          expirationSeconds: 3600
-            containerConfig:
-              volumeMounts:
-                - name: lakekeeper-token
-                  mountPath: /var/run/secrets/tokens
-                  readOnly: true
 
     dagsterWebserver:
       replicaCount: 1
@@ -128,23 +112,28 @@ spec:
             - "--module-name"
             - "orchestration"
           port: 3030
+          includeConfigInLaunchedRuns:
+            enabled: true
           env:
-            - name: LAKEKEEPER_URI
+            - name: ICEBERG_CATALOG_URI
               value: "http://lakekeeper.lakekeeper.svc.cluster.local:8181/catalog"
-            - name: LAKEKEEPER_WAREHOUSE
+            - name: ICEBERG_CATALOG_WAREHOUSE
               value: "crypto-ai-analysis"
+            - name: ICEBERG_CATALOG_TOKEN_FILE
+              value: "/var/run/secrets/tokens/catalog"
           envSecrets:
             - name: dagster-api-keys
           volumes:
-            - name: lakekeeper-token
+            - name: catalog-token
               projected:
                 sources:
+                  # audience must match the catalog's k8s auth audience.
                   - serviceAccountToken:
-                      path: lakekeeper
+                      path: catalog
                       audience: lakekeeper
                       expirationSeconds: 3600
           volumeMounts:
-            - name: lakekeeper-token
+            - name: catalog-token
               mountPath: /var/run/secrets/tokens
               readOnly: true
           resources:
