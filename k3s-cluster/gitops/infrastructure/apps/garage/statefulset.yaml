@@ -17,6 +17,7 @@ spec:
       labels:
         app: garage
     spec:
+      serviceAccountName: garage
       terminationGracePeriodSeconds: 60
       securityContext:
         fsGroup: 1000

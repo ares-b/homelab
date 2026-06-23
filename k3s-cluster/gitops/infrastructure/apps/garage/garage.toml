@@ -7,11 +7,11 @@ rpc_secret    = "PLACEHOLDER_RPC_SECRET"
 rpc_bind_addr = "0.0.0.0:3901"
 rpc_public_addr = "PLACEHOLDER_POD_NAME.garage-headless.garage.svc.cluster.local:3901"
 
-bootstrap_peers = [
-  "d2c3d0abcedd21b4211971482512c59a96d6440aa7ce6fbcde923237724e63f8@garage-0.garage-headless.garage.svc.cluster.local:3901",
-  "5be788a6570f0fdc140cf6dd3c9dd2d629fdc8ec3f684d35505baf911478ddc8@garage-1.garage-headless.garage.svc.cluster.local:3901",
-  "3fa7fc81967bd8c755284ec21aa7433fe978dec6ea7ffb6e60ad0959c85b1fc2@garage-2.garage-headless.garage.svc.cluster.local:3901",
-]
+# Avoids pinning node IDs, which regenerate on a fresh reinstall and break a static peer list.
+[kubernetes_discovery]
+namespace    = "garage"
+service_name = "garage"
+skip_crd     = false
 
 [s3_api]
 api_bind_addr = "0.0.0.0:3900"
