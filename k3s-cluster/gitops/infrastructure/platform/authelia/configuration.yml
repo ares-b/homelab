@@ -37,6 +37,9 @@ access_control:
     - domain: seaweedfs.int.edgedatalab.com
       subject: group:admins
       policy: two_factor
+    - domain: rustfs.int.edgedatalab.com
+      subject: group:admins
+      policy: two_factor
     - domain: dagster.int.edgedatalab.com
       subject:
         - group:admins
