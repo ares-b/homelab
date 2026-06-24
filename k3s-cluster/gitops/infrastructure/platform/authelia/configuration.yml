@@ -34,6 +34,9 @@ access_control:
     - domain: garage.int.edgedatalab.com
       subject: group:admins
       policy: two_factor
+    - domain: seaweedfs.int.edgedatalab.com
+      subject: group:admins
+      policy: two_factor
     - domain: dagster.int.edgedatalab.com
       subject:
         - group:admins
