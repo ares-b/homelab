@@ -6,6 +6,10 @@ metadata:
 spec:
   interval: 1h
   targetNamespace: seaweedfs
+  # Pin the release name so resources are seaweedfs-* (the chart derives names from
+  # Release.Name). Without it Flux prepends the namespace, yielding seaweedfs-seaweedfs-*
+  # and breaking the ingressroutes, PDB selectors, and the port-forward target.
+  releaseName: seaweedfs
   dependsOn:
     - name: sealed-secrets
       namespace: flux-system
