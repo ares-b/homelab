@@ -136,10 +136,10 @@ spec:
     admin:
       enabled: true
       replicas: 1
+      # Authelia forwardauth (admins + 2FA) is the only gate. An empty password turns
+      # off the admin UI's own login so users are not prompted twice.
       secret:
-        existingSecret: seaweedfs-admin
-        userKey: admin-user
-        pwKey: admin-password
+        adminPassword: ""
       resources:
         requests:
           cpu: 50m
