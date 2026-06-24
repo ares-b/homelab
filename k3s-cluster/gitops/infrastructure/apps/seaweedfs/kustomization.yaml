@@ -8,5 +8,4 @@ resources:
   - helmrepository.yaml
   - helmrelease.yaml
   - ingressroute-admin.yaml
-  - ingressroute-s3.yaml
   - pdb.yaml

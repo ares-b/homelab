@@ -21,16 +21,3 @@ variable "buckets" {
   default     = []
   description = "Buckets to create."
 }
-
-variable "cors" {
-  type = list(object({
-    bucket          = string
-    allowed_origins = list(string)
-    allowed_methods = optional(list(string), ["GET", "HEAD"])
-    allowed_headers = optional(list(string), ["*"])
-    expose_headers  = optional(list(string), ["ETag"])
-    max_age_seconds = optional(number, 3000)
-  }))
-  default     = []
-  description = "CORS rules per bucket."
-}
