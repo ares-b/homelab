@@ -31,6 +31,9 @@ k3s-%:
 garage-%:
 	$(MAKE) -C k3s-cluster garage-$*
 
+seaweedfs-%:
+	$(MAKE) -C k3s-cluster seaweedfs-$*
+
 cluster-shutdown:
 	$(MAKE) -C k3s-cluster shutdown
 
