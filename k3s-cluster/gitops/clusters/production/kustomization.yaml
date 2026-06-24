@@ -7,6 +7,7 @@ resources:
   - infrastructure-monitoring.yaml
   - infrastructure-postgresql.yaml
   - infrastructure-garage.yaml
+  - infrastructure-seaweedfs.yaml
   - infrastructure-dagster.yaml
   - infrastructure-lakekeeper.yaml
   - infrastructure-upgrade.yaml

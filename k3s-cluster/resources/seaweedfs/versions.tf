@@ -2,9 +2,9 @@ terraform {
   required_version = ">= 1.6"
 
   required_providers {
-    garage = {
-      source  = "jkossis/garage"
-      version = "1.0.4"
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 5.0"
     }
   }
 }

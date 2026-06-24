@@ -1,0 +1,154 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: seaweedfs
+  namespace: flux-system
+spec:
+  interval: 1h
+  targetNamespace: seaweedfs
+  dependsOn:
+    - name: sealed-secrets
+      namespace: flux-system
+  install:
+    createNamespace: false
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  chart:
+    spec:
+      chart: seaweedfs
+      version: "4.35.0"
+      sourceRef:
+        kind: HelmRepository
+        name: seaweedfs
+        namespace: flux-system
+  values:
+    # Pin the image explicitly instead of inheriting chart appVersion. 4.35 maps
+    # s3:PutObject onto the multipart actions (PR #8445), without which STS-vended
+    # writes fail. One image serves every component.
+    image:
+      tag: "4.35"
+
+    global:
+      seaweedfs:
+        enableSecurity: true
+        securityConfig:
+          jwtSigning:
+            volumeWrite: true
+            filerWrite: true
+        monitoring:
+          enabled: true
+        # "001" keeps one extra copy on another volume server. With one volume per
+        # node (hard anti-affinity), that is 2 copies on 2 nodes, surviving 1 node loss.
+        enableReplication: true
+        replicationPlacement: "001"
+        extraEnvironmentVars:
+          WEED_JWT_SIGNING_KEY:
+            secretKeyRef:
+              name: seaweedfs-jwt
+              key: jwt-signing-key
+
+    master:
+      replicas: 3
+      data:
+        type: persistentVolumeClaim
+        size: 1Gi
+        storageClass: ssd
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 250m
+          memory: 256Mi
+
+    volume:
+      replicas: 3
+      dataDirs:
+        - name: data1
+          type: persistentVolumeClaim
+          size: 10Gi
+          storageClass: ssd
+          maxVolumes: 0
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: "1"
+          memory: 1Gi
+
+    # Single filer with embedded leveldb on a PVC. Metadata is reproducible (re-ingest),
+    # so an external HA store is not worth the dependency at this scale.
+    filer:
+      replicas: 1
+      data:
+        type: persistentVolumeClaim
+        size: 2Gi
+        storageClass: ssd
+      s3:
+        enabled: false
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+
+    s3:
+      enabled: true
+      replicas: 2
+      enableAuth: true
+      existingConfigSecret: seaweedfs-s3-config
+      # Advanced IAM lets the s3 gateway issue short-lived STS credentials to any S3
+      # client. The IAM subsystem is changing fast upstream (active bugs in 4.1x, and
+      # AssumeRole-by-IAM-user only landed in PR #8597), so the roles/policies are
+      # validated at rollout, not assumed correct.
+      extraArgs:
+        - "-iam"
+        - "-iam.config=/etc/seaweedfs/iam/iam.json"
+        - "-s3.iam.readOnly=false"
+      extraVolumes: |
+        - name: iam-config
+          secret:
+            secretName: seaweedfs-iam-config
+      extraVolumeMounts: |
+        - name: iam-config
+          mountPath: /etc/seaweedfs/iam
+          readOnly: true
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 250m
+          memory: 256Mi
+
+    admin:
+      enabled: true
+      replicas: 1
+      secret:
+        existingSecret: seaweedfs-admin
+        userKey: admin-user
+        pwKey: admin-password
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 250m
+          memory: 256Mi
+
+    worker:
+      enabled: true
+      replicas: 1
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 250m
+          memory: 256Mi

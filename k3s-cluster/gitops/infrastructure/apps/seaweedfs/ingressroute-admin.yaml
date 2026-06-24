@@ -1,0 +1,19 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: seaweedfs-admin
+  namespace: seaweedfs
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`seaweedfs.int.edgedatalab.com`)
+      kind: Rule
+      middlewares:
+        - name: forwardauth
+          namespace: authelia
+      services:
+        - name: seaweedfs-admin
+          port: 23646
+  tls:
+    certResolver: letsencrypt

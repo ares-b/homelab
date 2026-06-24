@@ -4,6 +4,7 @@ SOPS_EXEC         := python3 $(ROOT)/scripts/sops-exec.py
 TF_DIR            := provision/production
 ANSIBLE_DIR       := provision/ansible
 GARAGE_TF_DIR     := resources/garage
+SEAWEEDFS_TF_DIR  := resources/seaweedfs
 USERS_TF_DIR      := resources/k8s-users
 NODES_TF_DIR      := resources/k8s-nodes
 INVENTORY         := $(ANSIBLE_DIR)/inventory.ini
@@ -25,6 +26,7 @@ export ANSIBLE_CONFIG := $(ROOT)/ansible.cfg
 
 .PHONY: help plan apply destroy configure wait bootstrap garage-layout \
         garage-init garage-plan garage-apply garage-destroy \
+        seaweedfs-init seaweedfs-plan seaweedfs-apply seaweedfs-destroy \
         users-init users-plan users-apply users-destroy \
         nodes-init nodes-plan nodes-apply nodes-destroy \
         kubeconfig kubeconfig-admin drain uncordon shutdown
@@ -45,6 +47,9 @@ help:
 	@echo "garage-plan      terraform plan for garage buckets/keys"
 	@echo "garage-apply     terraform apply (port-forwards admin API, creates sealed secrets)"
 	@echo "garage-destroy   terraform destroy garage buckets/keys"
+	@echo "seaweedfs-plan   terraform plan for seaweedfs buckets/cors"
+	@echo "seaweedfs-apply  terraform apply (port-forwards S3 API, creates buckets/cors)"
+	@echo "seaweedfs-destroy terraform destroy seaweedfs buckets/cors"
 	@echo "kubeconfig       write kubeconfig for K8S_USER (default: $(USER))"
 	@echo "kubeconfig-admin fetch raw admin kubeconfig (emergency use only)"
 	@echo "drain            drain worker nodes before shutdown"
@@ -113,6 +118,15 @@ garage-plan garage-apply garage-destroy:
 	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl port-forward svc/garage 3903:3903 -n garage & \
 	PF_PID=$$!; sleep 2; \
 	cd $(GARAGE_TF_DIR) && sops exec-file $(CONFIG_SOPS) '$(SOPS_EXEC) {} TF_VAR_ garage terraform $(subst garage-,,$@) $(if $(filter garage-plan,$@),,-auto-approve)'; \
+	kill $$PF_PID 2>/dev/null || true
+
+seaweedfs-init:
+	cd $(SEAWEEDFS_TF_DIR) && terraform init
+
+seaweedfs-plan seaweedfs-apply seaweedfs-destroy:
+	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl port-forward svc/seaweedfs-s3 8333:8333 -n seaweedfs & \
+	PF_PID=$$!; sleep 2; \
+	cd $(SEAWEEDFS_TF_DIR) && sops exec-file $(CONFIG_SOPS) '$(SOPS_EXEC) {} TF_VAR_ seaweedfs terraform $(subst seaweedfs-,,$@) $(if $(filter seaweedfs-plan,$@),,-auto-approve)'; \
 	kill $$PF_PID 2>/dev/null || true
 
 users-init:
