@@ -33,7 +33,10 @@ spec:
 
     global:
       seaweedfs:
-        enableSecurity: true
+        # enableSecurity pulls in cert-manager for inter-component mTLS, which this
+        # cluster does not run (Traefik handles TLS at the edge). Keep JWT request
+        # signing, which guards volume access and needs no certificates.
+        enableSecurity: false
         securityConfig:
           jwtSigning:
             volumeWrite: true
