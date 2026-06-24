@@ -40,6 +40,8 @@ spec:
       consoleAddress: "0.0.0.0:9001"
       consoleEnabled: true
       logLevel: "info"
+      # Empty disables RustFS TLS; traefik terminates TLS at the edge and proxies http.
+      tlsPath: ""
       # External port traefik terminates TLS on, used when RustFS builds absolute URLs.
       externalAddress: ":443"
       # Browser DuckDB (served from the Lakekeeper origin) reads objects cross-origin.
