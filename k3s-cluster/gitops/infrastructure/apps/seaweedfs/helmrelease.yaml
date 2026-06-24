@@ -111,9 +111,8 @@ spec:
       # AssumeRole-by-IAM-user only landed in PR #8597), so the roles/policies are
       # validated at rollout, not assumed correct.
       extraArgs:
-        - "-iam"
         - "-iam.config=/etc/seaweedfs/iam/iam.json"
-        - "-s3.iam.readOnly=false"
+        - "-iam.readOnly=false"
       extraVolumes: |
         - name: iam-config
           secret:
