@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - sealed-rustfs-auth.yaml
+  - sealed-rustfs-setup.yaml
+  - helmrepository.yaml
+  - helmrelease.yaml
+  - ingressroute-s3.yaml
+  - ingressroute-console.yaml

@@ -1,0 +1,19 @@
+# No Authelia ForwardAuth: S3 clients use AWS Sig-V4. Host resolves to the LAN, and
+# in-cluster to the traefik ClusterIP via coredns-custom so Lakekeeper reaches the
+# same endpoint as the browser DuckDB engine.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: rustfs-s3
+  namespace: rustfs
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`s3.rustfs.int.edgedatalab.com`)
+      kind: Rule
+      services:
+        - name: rustfs
+          port: 9000
+  tls:
+    certResolver: letsencrypt

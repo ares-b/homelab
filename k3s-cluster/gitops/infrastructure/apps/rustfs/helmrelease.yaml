@@ -1,0 +1,91 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: rustfs
+  namespace: flux-system
+spec:
+  interval: 1h
+  targetNamespace: rustfs
+  releaseName: rustfs
+  dependsOn:
+    - name: sealed-secrets
+      namespace: flux-system
+  install:
+    createNamespace: false
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  chart:
+    spec:
+      chart: rustfs
+      version: "0.9.1"
+      sourceRef:
+        kind: HelmRepository
+        name: rustfs
+        namespace: flux-system
+  values:
+    fullnameOverride: rustfs
+
+    # Chart 0.9.1 pins beta.1; track the current latest RustFS (beta.8).
+    image:
+      tag: "1.0.0-beta.8"
+
+    auth:
+      existingSecret: rustfs-auth
+
+    config:
+      address: "0.0.0.0:9000"
+      consoleAddress: "0.0.0.0:9001"
+      consoleEnabled: true
+      logLevel: "info"
+      # External port traefik terminates TLS on, used when RustFS builds absolute URLs.
+      externalAddress: ":443"
+      # Browser DuckDB (served from the Lakekeeper origin) reads objects cross-origin.
+      corsAllowedOrigins: "https://lakekeeper.int.edgedatalab.com"
+      consoleCorsAllowedOrigins: "https://rustfs.int.edgedatalab.com"
+
+    # Declarative IAM: a scoped policy + the lakekeeper user + the warehouse bucket,
+    # all from the sealed setup secret. The policy grants only bucket s3 + sts:AssumeRole
+    # (no admin), which is the least-privilege behaviour we are evaluating.
+    setup:
+      existingSecret: rustfs-setup
+      # The chart renders the setup Pod only when these inline lists are non-empty.
+      # The Pod actually mounts existingSecret (which overrides them), so the real
+      # config stays sealed; these placeholders just satisfy that render gate.
+      policies: [{ name: placeholder }]
+      buckets: [{ name: placeholder }]
+      users: [{ name: placeholder }]
+
+    replicaCount: 1
+    deploymentType: "deployment"
+
+    dataPersistence:
+      enabled: true
+      storageClass: ssd
+      size: 10Gi
+    logsPersistence:
+      enabled: false
+
+    service:
+      type: ClusterIP
+      port: 9000
+    consoleService:
+      enabled: true
+      type: ClusterIP
+      port: 9001
+
+    # TLS terminates at traefik; the chart ingress is unused.
+    ingress:
+      enabled: false
+    consoleIngress:
+      enabled: false
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
