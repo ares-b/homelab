@@ -1,3 +1,7 @@
+# No Authelia ForwardAuth: the console authenticates users itself via OIDC SSO
+# against Authelia. Layering forward-auth in front breaks the console's own OIDC
+# callback (the portal interstitial clobbers the console OAuth state/session cookie),
+# which surfaces as "Your session has expired. Please log in again."
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
@@ -9,9 +13,6 @@ spec:
   routes:
     - match: Host(`rustfs.int.edgedatalab.com`)
       kind: Rule
-      middlewares:
-        - name: forwardauth
-          namespace: authelia
       services:
         - name: rustfs-console
           port: 9001
