@@ -22,9 +22,9 @@ spec:
         name: stakater
         namespace: flux-system
   values:
+    fullnameOverride: reloader
     reloader:
-      # Restart workloads only when they opt in via reloader.stakater.com annotations,
-      # not on every ConfigMap/Secret change in the cluster.
+      # Only annotated workloads are rolled, so watching the whole cluster is safe.
       reloadOnCreate: false
       watchGlobally: true
       deployment:

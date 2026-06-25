@@ -78,6 +78,18 @@ spec:
               - op: add
                 path: /spec/template/spec/containers/0/env/-
                 value: { name: RUSTFS_IDENTITY_OPENID_DISPLAY_NAME, value: "Authelia" }
+          # OIDC client secret + root creds are injected as env, which never refreshes in a
+          # running pod, so roll the deployment when those secrets change.
+          - target:
+              kind: Deployment
+              name: rustfs
+            patch: |
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: rustfs
+                annotations:
+                  secret.reloader.stakater.com/reload: "rustfs-oidc,rustfs-auth"
   values:
     fullnameOverride: rustfs
 
