@@ -131,7 +131,7 @@ spec:
     dataPersistence:
       enabled: true
       storageClass: ssd
-      size: 10Gi
+      size: 250Gi
     logsPersistence:
       enabled: false
 
@@ -151,8 +151,8 @@ spec:
 
     resources:
       requests:
-        cpu: 100m
-        memory: 256Mi
+        cpu: 250m
+        memory: 512Mi
       limits:
         cpu: "1"
         memory: 1Gi
