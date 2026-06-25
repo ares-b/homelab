@@ -35,6 +35,9 @@ spec:
   # value as a policy name: Authelia returns roles=["consoleAdmin"] for admins, so
   # GROUPS_CLAIM=roles attaches the built-in consoleAdmin policy (without it, STS falls back
   # to the empty "groups" claim and denies). CLAIM_NAME is set to the same claim for parity.
+  # The "roles" claim is custom, so Authelia only releases it when the client requests a
+  # scope that grants it: the rustfs_roles scope (registered on the Authelia client) must be
+  # in SCOPES, else the claim never reaches the token and every login is AccessDenied.
   # USERNAME_CLAIM/EMAIL_CLAIM set the console identity (preferred_username avoids the user
   # showing up as the rustfsAdmin root, see rustfs#2612).
   postRenderers:
@@ -66,7 +69,7 @@ spec:
                 value: { name: RUSTFS_IDENTITY_OPENID_REDIRECT_URI, value: "https://rustfs.int.edgedatalab.com/rustfs/admin/v3/oidc/callback/default" }
               - op: add
                 path: /spec/template/spec/containers/0/env/-
-                value: { name: RUSTFS_IDENTITY_OPENID_SCOPES, value: "openid,profile,email" }
+                value: { name: RUSTFS_IDENTITY_OPENID_SCOPES, value: "openid,profile,email,rustfs_roles" }
               - op: add
                 path: /spec/template/spec/containers/0/env/-
                 value: { name: RUSTFS_IDENTITY_OPENID_GROUPS_CLAIM, value: "roles" }
