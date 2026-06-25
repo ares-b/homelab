@@ -28,18 +28,14 @@ spec:
   # The chart's extraEnvVars leaks into the ConfigMap (and can't hold a secret), so the
   # OIDC env is injected onto the deployment here instead.
   #
-  # Console SSO ("Login with Authelia"). The env-configured provider has the fixed id
-  # "default", so the callback path is .../oidc/callback/default. RustFS runs http behind
-  # traefik, so REDIRECT_URI is pinned to the external https URL (the server can't infer
-  # the edge scheme). RustFS resolves the session policy from GROUPS_CLAIM, treating each
-  # value as a policy name: Authelia returns roles=["consoleAdmin"] for admins, so
-  # GROUPS_CLAIM=roles attaches the built-in consoleAdmin policy (without it, STS falls back
-  # to the empty "groups" claim and denies). CLAIM_NAME is set to the same claim for parity.
-  # The "roles" claim is custom, so Authelia only releases it when the client requests a
-  # scope that grants it: the rustfs_roles scope (registered on the Authelia client) must be
-  # in SCOPES, else the claim never reaches the token and every login is AccessDenied.
-  # USERNAME_CLAIM/EMAIL_CLAIM set the console identity (preferred_username avoids the user
-  # showing up as the rustfsAdmin root, see rustfs#2612).
+  # Console SSO ("Login with Authelia"). The env provider has the fixed id "default", so the
+  # callback path is .../oidc/callback/default. RustFS runs http behind traefik, so
+  # REDIRECT_URI is pinned to the external https URL (it can't infer the edge scheme).
+  # RustFS reads policy names from GROUPS_CLAIM, so GROUPS_CLAIM=roles maps Authelia's
+  # roles=["consoleAdmin"] onto the built-in consoleAdmin policy. "roles" is a custom claim,
+  # released only via the rustfs_roles scope, which must therefore be in both SCOPES and the
+  # Authelia client. USERNAME_CLAIM avoids the user showing up as the rustfsAdmin root
+  # (rustfs#2612).
   postRenderers:
     - kustomize:
         patches:
@@ -73,9 +69,6 @@ spec:
               - op: add
                 path: /spec/template/spec/containers/0/env/-
                 value: { name: RUSTFS_IDENTITY_OPENID_GROUPS_CLAIM, value: "roles" }
-              - op: add
-                path: /spec/template/spec/containers/0/env/-
-                value: { name: RUSTFS_IDENTITY_OPENID_CLAIM_NAME, value: "roles" }
               - op: add
                 path: /spec/template/spec/containers/0/env/-
                 value: { name: RUSTFS_IDENTITY_OPENID_USERNAME_CLAIM, value: "preferred_username" }
