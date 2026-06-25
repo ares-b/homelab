@@ -45,8 +45,8 @@ session:
     - name: authelia_session
       domain: int.edgedatalab.com
       authelia_url: https://auth.int.edgedatalab.com
-      expiration: 1h
-      inactivity: 30m
+      expiration: 8h
+      inactivity: 1h
       remember_me: 720h
 
 regulation:
