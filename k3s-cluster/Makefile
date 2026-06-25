@@ -3,8 +3,6 @@ CONFIG_SOPS       := $(ROOT)/config.sops.yaml
 SOPS_EXEC         := python3 $(ROOT)/scripts/sops-exec.py
 TF_DIR            := provision/production
 ANSIBLE_DIR       := provision/ansible
-GARAGE_TF_DIR     := resources/garage
-SEAWEEDFS_TF_DIR  := resources/seaweedfs
 USERS_TF_DIR      := resources/k8s-users
 NODES_TF_DIR      := resources/k8s-nodes
 INVENTORY         := $(ANSIBLE_DIR)/inventory.ini
@@ -24,9 +22,7 @@ SEALED_SECRETS_KEY ?= gitops/clusters/production/sealed-secrets/sealed-secrets-k
 
 export ANSIBLE_CONFIG := $(ROOT)/ansible.cfg
 
-.PHONY: help plan apply destroy configure wait bootstrap garage-layout \
-        garage-init garage-plan garage-apply garage-destroy \
-        seaweedfs-init seaweedfs-plan seaweedfs-apply seaweedfs-destroy \
+.PHONY: help plan apply destroy configure wait bootstrap \
         users-init users-plan users-apply users-destroy \
         nodes-init nodes-plan nodes-apply nodes-destroy \
         kubeconfig kubeconfig-admin drain uncordon shutdown
@@ -42,14 +38,7 @@ help:
 	@echo "nodes-apply      terraform apply node storage labels"
 	@echo "nodes-plan       terraform plan node storage labels"
 	@echo "nodes-destroy    terraform destroy node storage labels"
-	@echo "bootstrap        flux bootstrap + sealed-secrets key + garage layout"
-	@echo "garage-layout    initialize garage cluster layout (idempotent)"
-	@echo "garage-plan      terraform plan for garage buckets/keys"
-	@echo "garage-apply     terraform apply (port-forwards admin API, creates sealed secrets)"
-	@echo "garage-destroy   terraform destroy garage buckets/keys"
-	@echo "seaweedfs-plan   terraform plan for seaweedfs buckets/cors"
-	@echo "seaweedfs-apply  terraform apply (port-forwards S3 API, creates buckets/cors)"
-	@echo "seaweedfs-destroy terraform destroy seaweedfs buckets/cors"
+	@echo "bootstrap        flux bootstrap + sealed-secrets key"
 	@echo "kubeconfig       write kubeconfig for K8S_USER (default: $(USER))"
 	@echo "kubeconfig-admin fetch raw admin kubeconfig (emergency use only)"
 	@echo "drain            drain worker nodes before shutdown"
@@ -95,39 +84,6 @@ bootstrap: | $(WORKLOAD_CA_FILE)
 		| KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl apply -f -
 	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl rollout restart deployment/sealed-secrets-controller \
 		-n sealed-secrets
-	$(MAKE) garage-layout
-
-garage-layout:
-	@echo "Waiting for Garage StatefulSet..."
-	@until KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl get statefulset garage -n garage >/dev/null 2>&1; \
-		do sleep 15; done
-	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl rollout status statefulset/garage \
-		-n garage --timeout=15m
-	@TOKEN=$$(KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl get secret garage-admin -n garage \
-		-o jsonpath='{.data.admin-token}' | base64 -d) && \
-	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl run garage-layout-init -n garage \
-		--rm -i --restart=Never \
-		--image=python:3.13-alpine \
-		--env="GARAGE_ADMIN_TOKEN=$$TOKEN" \
-		-- python3 -u - < $(ROOT)/scripts/garage-layout-init.py
-
-garage-init:
-	cd $(GARAGE_TF_DIR) && terraform init
-
-garage-plan garage-apply garage-destroy:
-	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl port-forward svc/garage 3903:3903 -n garage & \
-	PF_PID=$$!; sleep 2; \
-	cd $(GARAGE_TF_DIR) && sops exec-file $(CONFIG_SOPS) '$(SOPS_EXEC) {} TF_VAR_ garage terraform $(subst garage-,,$@) $(if $(filter garage-plan,$@),,-auto-approve)'; \
-	kill $$PF_PID 2>/dev/null || true
-
-seaweedfs-init:
-	cd $(SEAWEEDFS_TF_DIR) && terraform init
-
-seaweedfs-plan seaweedfs-apply seaweedfs-destroy:
-	KUBECONFIG=$(KUBECONFIG_ADMIN) kubectl port-forward svc/seaweedfs-s3 8333:8333 -n seaweedfs & \
-	PF_PID=$$!; sleep 2; \
-	cd $(SEAWEEDFS_TF_DIR) && sops exec-file $(CONFIG_SOPS) '$(SOPS_EXEC) {} TF_VAR_ seaweedfs terraform $(subst seaweedfs-,,$@) $(if $(filter seaweedfs-plan,$@),,-auto-approve)'; \
-	kill $$PF_PID 2>/dev/null || true
 
 users-init:
 	cd $(USERS_TF_DIR) && terraform init

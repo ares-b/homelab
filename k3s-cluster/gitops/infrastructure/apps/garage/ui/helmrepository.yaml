@@ -1,8 +1,0 @@
-apiVersion: source.toolkit.fluxcd.io/v1
-kind: HelmRepository
-metadata:
-  name: garage-ui
-  namespace: flux-system
-spec:
-  interval: 1h
-  url: https://helm.noste.dev

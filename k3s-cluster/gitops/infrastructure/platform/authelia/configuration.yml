@@ -31,12 +31,6 @@ access_control:
     - domain: prometheus.int.edgedatalab.com
       subject: group:admins
       policy: two_factor
-    - domain: garage.int.edgedatalab.com
-      subject: group:admins
-      policy: two_factor
-    - domain: seaweedfs.int.edgedatalab.com
-      subject: group:admins
-      policy: two_factor
     - domain: rustfs.int.edgedatalab.com
       subject: group:admins
       policy: two_factor

@@ -6,8 +6,6 @@ resources:
   - infrastructure-authelia.yaml
   - infrastructure-monitoring.yaml
   - infrastructure-postgresql.yaml
-  - infrastructure-garage.yaml
-  - infrastructure-seaweedfs.yaml
   - infrastructure-rustfs.yaml
   - infrastructure-dagster.yaml
   - infrastructure-lakekeeper.yaml

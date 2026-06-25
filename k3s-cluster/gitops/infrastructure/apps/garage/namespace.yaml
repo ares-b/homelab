@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: garage
-  annotations:
-    # Stateful namespace: never let Flux prune it (e.g. during Kustomization moves).
-    kustomize.toolkit.fluxcd.io/prune: disabled
