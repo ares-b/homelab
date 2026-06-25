@@ -3,6 +3,10 @@ kind: Deployment
 metadata:
   name: authelia
   namespace: authelia
+  annotations:
+    # Roll the pod when any of these sealed Secrets change; Flux updates the Secret in place
+    # but not the Deployment, so without this the config stays stale until a manual restart.
+    secret.reloader.stakater.com/reload: "authelia-oidc,authelia,authelia-smtp"
 spec:
   replicas: 1
   selector:

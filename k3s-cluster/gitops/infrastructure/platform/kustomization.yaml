@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - coredns
   - sealed-secrets
+  - reloader
   - traefik
   - cnpg
   - topolvm
