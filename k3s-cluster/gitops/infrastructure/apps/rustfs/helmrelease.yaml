@@ -31,10 +31,12 @@ spec:
   # Console SSO ("Login with Authelia"). The env-configured provider has the fixed id
   # "default", so the callback path is .../oidc/callback/default. RustFS runs http behind
   # traefik, so REDIRECT_URI is pinned to the external https URL (the server can't infer
-  # the edge scheme). CLAIM_NAME is the token claim whose values RustFS treats as policy
-  # names: Authelia returns roles=["consoleAdmin"] for admins, mapping them onto the
-  # built-in consoleAdmin policy. USERNAME_CLAIM/EMAIL_CLAIM set the console identity
-  # (preferred_username avoids the user showing up as the rustfsAdmin root, see rustfs#2612).
+  # the edge scheme). RustFS resolves the session policy from GROUPS_CLAIM, treating each
+  # value as a policy name: Authelia returns roles=["consoleAdmin"] for admins, so
+  # GROUPS_CLAIM=roles attaches the built-in consoleAdmin policy (without it, STS falls back
+  # to the empty "groups" claim and denies). CLAIM_NAME is set to the same claim for parity.
+  # USERNAME_CLAIM/EMAIL_CLAIM set the console identity (preferred_username avoids the user
+  # showing up as the rustfsAdmin root, see rustfs#2612).
   postRenderers:
     - kustomize:
         patches:
@@ -65,6 +67,9 @@ spec:
               - op: add
                 path: /spec/template/spec/containers/0/env/-
                 value: { name: RUSTFS_IDENTITY_OPENID_SCOPES, value: "openid,profile,email" }
+              - op: add
+                path: /spec/template/spec/containers/0/env/-
+                value: { name: RUSTFS_IDENTITY_OPENID_GROUPS_CLAIM, value: "roles" }
               - op: add
                 path: /spec/template/spec/containers/0/env/-
                 value: { name: RUSTFS_IDENTITY_OPENID_CLAIM_NAME, value: "roles" }
