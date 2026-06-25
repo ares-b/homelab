@@ -25,6 +25,45 @@ spec:
         kind: HelmRepository
         name: rustfs
         namespace: flux-system
+  # The chart's extraEnvVars leaks into the ConfigMap (and can't hold a secret), so the
+  # OIDC env is injected onto the deployment here instead. consoleAdmin comes from the
+  # Authelia roles claim.
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: Deployment
+              name: rustfs
+            patch: |
+              - op: add
+                path: /spec/template/spec/containers/0/env/-
+                value: { name: RUSTFS_IDENTITY_OPENID_ENABLE, value: "true" }
+              - op: add
+                path: /spec/template/spec/containers/0/env/-
+                value: { name: RUSTFS_IDENTITY_OPENID_CONFIG_URL, value: "https://auth.int.edgedatalab.com/.well-known/openid-configuration" }
+              - op: add
+                path: /spec/template/spec/containers/0/env/-
+                value: { name: RUSTFS_IDENTITY_OPENID_CLIENT_ID, value: "rustfs" }
+              - op: add
+                path: /spec/template/spec/containers/0/env/-
+                value:
+                  name: RUSTFS_IDENTITY_OPENID_CLIENT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: rustfs-oidc
+                      key: client-secret
+              - op: add
+                path: /spec/template/spec/containers/0/env/-
+                value: { name: RUSTFS_IDENTITY_OPENID_SCOPES, value: "openid,profile,email,groups" }
+              - op: add
+                path: /spec/template/spec/containers/0/env/-
+                value: { name: RUSTFS_IDENTITY_OPENID_GROUPS_CLAIM, value: "groups" }
+              - op: add
+                path: /spec/template/spec/containers/0/env/-
+                value: { name: RUSTFS_IDENTITY_OPENID_ROLES_CLAIM, value: "roles" }
+              - op: add
+                path: /spec/template/spec/containers/0/env/-
+                value: { name: RUSTFS_IDENTITY_OPENID_DISPLAY_NAME, value: "Authelia" }
   values:
     fullnameOverride: rustfs
 
@@ -47,28 +86,6 @@ spec:
       # Browser DuckDB (served from the Lakekeeper origin) reads objects cross-origin.
       corsAllowedOrigins: "https://lakekeeper.int.edgedatalab.com"
       consoleCorsAllowedOrigins: "https://rustfs.int.edgedatalab.com"
-      # Console OIDC SSO via Authelia. Authelia emits a roles=["consoleAdmin"] claim for
-      # group:admins (claims-policy), which RustFS maps to its built-in consoleAdmin policy.
-      extraEnvVars:
-        - name: RUSTFS_IDENTITY_OPENID_ENABLE
-          value: "true"
-        - name: RUSTFS_IDENTITY_OPENID_CONFIG_URL
-          value: "https://auth.int.edgedatalab.com/.well-known/openid-configuration"
-        - name: RUSTFS_IDENTITY_OPENID_CLIENT_ID
-          value: "rustfs"
-        - name: RUSTFS_IDENTITY_OPENID_CLIENT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: rustfs-oidc
-              key: client-secret
-        - name: RUSTFS_IDENTITY_OPENID_SCOPES
-          value: "openid,profile,email,groups"
-        - name: RUSTFS_IDENTITY_OPENID_GROUPS_CLAIM
-          value: "groups"
-        - name: RUSTFS_IDENTITY_OPENID_ROLES_CLAIM
-          value: "roles"
-        - name: RUSTFS_IDENTITY_OPENID_DISPLAY_NAME
-          value: "Authelia"
 
     # Declarative IAM: a scoped policy + the lakekeeper user + the warehouse bucket,
     # all from the sealed setup secret. The policy grants only bucket s3 + sts:AssumeRole
