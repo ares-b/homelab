@@ -1,0 +1,14 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: rustfs-oidc
+  namespace: rustfs
+spec:
+  encryptedData:
+    client-secret: AgAi8CzUUJ6Bg6QLKXx/66hp0wknIaWdVrFzp/FAnrjqq90Ay4DjA0nBoChkAVe9VLHWrkhFQ9NZxQqrkd2rkfrn6WfM+jDzu7GGjOENru5rw8pnckUOxa4NUMYWlUWZ+XKA3Xm81bmCbv2oV1eagbTJ+bF+6VfcbtsMMip4BsPUZrPBlnTQdtwuSZCXWYoTNXA9GqtPAWi1EkfBZ0AeeHXLQE0030beGzzqlQ/TCmT463GKmoC6buklgz15oxAE7vz3jGN1o6GlPf24D/He8hV6FCgBk6n3WsSmBAco2+Gm5Ip0ZYvsBW4tE5/xL1+zf/Y5rSvdwl4sCYDHklmWR2af+1cffLeAjYmvPiz5mj6o5vbM1b8ruxVGT3yFS6uiuPQ/Vq8693BtUTVwbMXz88tcqKQkPVjQjgC9H4ylwMA5WySvkrkpZ4aQKCaPp6qW4taFX4frKJUbE3zFR2P/pO4Q7RNVwAYVJ2uA+k4ATSgPPtnDfSPRtKd9+Q2/WwzPQjWIS+dL6bv5oHJp+9yv0g5fQNHIiVq1n/hXI+ScwYJJxOhV0cHaGxde1pGJkFtDIxYn6JndxGxYZVrEzx2PTQx1QVSB1czwsOESWIhkX5l6g1BnR33GOiI1ZBkiGGqPltMZX6i0kzcUCUoi6x9Q/spMspdVJG9KLSqYh1D/+CqqqMPEnZSkVUHIBS9xCRmX/rNdOvJkxEs8oI4kzsP2EBb8SyQgBIIqIOCfjCK7UMVYwZZhSdKh3rTWRmGa8h/F5rWrSextY6Q=
+  template:
+    metadata:
+      name: rustfs-oidc
+      namespace: rustfs
+    type: Opaque

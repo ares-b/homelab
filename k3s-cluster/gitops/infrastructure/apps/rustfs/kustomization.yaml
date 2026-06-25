@@ -4,6 +4,7 @@ resources:
   - namespace.yaml
   - sealed-rustfs-auth.yaml
   - sealed-rustfs-setup.yaml
+  - sealed-rustfs-oidc.yaml
   - helmrepository.yaml
   - helmrelease.yaml
   - ingressroute-s3.yaml
