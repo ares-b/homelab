@@ -66,16 +66,6 @@ notifier:
 
 identity_providers:
   oidc:
-    # OIDC client access policy (referenced by clients in the sealed oidc.yaml). Kept here,
-    # not in the sealed file, so membership changes need no reseal.
-    authorization_policies:
-      staff:
-        default_policy: deny
-        rules:
-          - policy: two_factor
-            subject:
-              - group:admins
-              - group:developers
     cors:
       endpoints:
         - authorization
