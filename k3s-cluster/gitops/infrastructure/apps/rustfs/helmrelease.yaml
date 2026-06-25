@@ -26,8 +26,11 @@ spec:
         name: rustfs
         namespace: flux-system
   # The chart's extraEnvVars leaks into the ConfigMap (and can't hold a secret), so the
-  # OIDC env is injected onto the deployment here instead. consoleAdmin comes from the
-  # Authelia roles claim.
+  # OIDC env is injected onto the deployment here instead. The env-configured provider
+  # has the fixed id "default", so the callback path is .../callback/default. RustFS maps
+  # the values of GROUPS_CLAIM directly to policy names; Authelia returns a "roles" claim
+  # holding consoleAdmin for admins, so both GROUPS_CLAIM and CLAIM_NAME point at "roles"
+  # (equal, so the user's real groups never leak in as bogus policy names).
   postRenderers:
     - kustomize:
         patches:
@@ -54,13 +57,16 @@ spec:
                       key: client-secret
               - op: add
                 path: /spec/template/spec/containers/0/env/-
-                value: { name: RUSTFS_IDENTITY_OPENID_SCOPES, value: "openid,profile,email,groups" }
+                value: { name: RUSTFS_IDENTITY_OPENID_REDIRECT_URI, value: "https://rustfs.int.edgedatalab.com/rustfs/admin/v3/oidc/callback/default" }
               - op: add
                 path: /spec/template/spec/containers/0/env/-
-                value: { name: RUSTFS_IDENTITY_OPENID_GROUPS_CLAIM, value: "groups" }
+                value: { name: RUSTFS_IDENTITY_OPENID_SCOPES, value: "openid,profile,email" }
               - op: add
                 path: /spec/template/spec/containers/0/env/-
-                value: { name: RUSTFS_IDENTITY_OPENID_ROLES_CLAIM, value: "roles" }
+                value: { name: RUSTFS_IDENTITY_OPENID_GROUPS_CLAIM, value: "roles" }
+              - op: add
+                path: /spec/template/spec/containers/0/env/-
+                value: { name: RUSTFS_IDENTITY_OPENID_CLAIM_NAME, value: "roles" }
               - op: add
                 path: /spec/template/spec/containers/0/env/-
                 value: { name: RUSTFS_IDENTITY_OPENID_DISPLAY_NAME, value: "Authelia" }
