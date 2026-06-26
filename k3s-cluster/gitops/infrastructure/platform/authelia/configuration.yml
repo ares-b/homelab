@@ -6,6 +6,11 @@ log:
 server:
   address: tcp://0.0.0.0:9091/
 
+telemetry:
+  metrics:
+    enabled: true
+    address: tcp://0.0.0.0:9959/metrics
+
 authentication_backend:
   password_reset:
     disable: false

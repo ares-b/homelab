@@ -3,9 +3,13 @@ kind: Service
 metadata:
   name: authelia
   namespace: authelia
+  labels:
+    app: authelia
 spec:
   selector:
     app: authelia
   ports:
     - name: http
       port: 9091
+    - name: metrics
+      port: 9959

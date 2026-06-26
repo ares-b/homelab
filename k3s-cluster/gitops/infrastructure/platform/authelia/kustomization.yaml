@@ -5,6 +5,7 @@ resources:
   - pvc.yaml
   - deployment.yaml
   - service.yaml
+  - servicemonitor.yaml
   - middleware.yaml
   - ingressroute.yaml
   - sealed-authelia-users.yaml
