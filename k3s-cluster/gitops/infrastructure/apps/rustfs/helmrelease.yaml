@@ -90,6 +90,44 @@ spec:
                 name: rustfs
                 annotations:
                   secret.reloader.stakater.com/reload: "rustfs-oidc,rustfs-auth"
+          # RustFS resolves the OIDC provider once at boot with no retry, so a transient
+          # Authelia 503 during a co-restart permanently disables "Login with Authelia"
+          # until the next roll. Gate startup on discovery serving 200 to make the
+          # dependency explicit and survive co-restarts.
+          - target:
+              kind: Deployment
+              name: rustfs
+            patch: |
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: rustfs
+              spec:
+                template:
+                  spec:
+                    initContainers:
+                      - name: wait-for-authelia-oidc
+                        image: curlimages/curl:8.11.1
+                        command: ["/bin/sh", "-c"]
+                        args:
+                          - |
+                            until curl -fsS -o /dev/null --max-time 5 https://auth.int.edgedatalab.com/.well-known/openid-configuration; do
+                              echo "waiting for Authelia OIDC discovery..."
+                              sleep 3
+                            done
+                        resources:
+                          requests:
+                            cpu: 10m
+                            memory: 16Mi
+                          limits:
+                            cpu: 50m
+                            memory: 32Mi
+                        securityContext:
+                          runAsNonRoot: true
+                          allowPrivilegeEscalation: false
+                          readOnlyRootFilesystem: true
+                          capabilities:
+                            drop: ["ALL"]
   values:
     fullnameOverride: rustfs
 
