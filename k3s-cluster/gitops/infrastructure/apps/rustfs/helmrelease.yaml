@@ -124,6 +124,7 @@ spec:
                             memory: 32Mi
                         securityContext:
                           runAsNonRoot: true
+                          runAsUser: 100
                           allowPrivilegeEscalation: false
                           readOnlyRootFilesystem: true
                           capabilities:
