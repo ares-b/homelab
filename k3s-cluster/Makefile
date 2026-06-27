@@ -89,14 +89,14 @@ users-init:
 	cd $(USERS_TF_DIR) && terraform init
 
 users-plan users-apply users-destroy:
-	cd $(USERS_TF_DIR) && TF_VAR_kubeconfig_path=$(KUBECONFIG_ADMIN) \
-		terraform $(subst users-,,$@) $(if $(filter users-plan,$@),,-auto-approve)
+	cd $(USERS_TF_DIR) && \
+		sops exec-file $(CONFIG_SOPS) '$(SOPS_EXEC) {} TF_VAR_ k3s_provision terraform $(subst users-,,$@) $(if $(filter users-plan,$@),,-auto-approve)'
 
 nodes-init:
 	cd $(NODES_TF_DIR) && terraform init
 
 nodes-plan nodes-apply nodes-destroy:
-	cd $(NODES_TF_DIR) && TF_VAR_kubeconfig_path=$(KUBECONFIG_ADMIN) \
+	cd $(NODES_TF_DIR) && \
 		sops exec-file $(CONFIG_SOPS) '$(SOPS_EXEC) {} TF_VAR_ k3s_provision terraform $(subst nodes-,,$@) $(if $(filter nodes-plan,$@),,-auto-approve)'
 
 kubeconfig:

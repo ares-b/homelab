@@ -23,6 +23,6 @@ After apply:
 make k3s-configure    # ansible: node prep, disk LVM, firewall
 make k3s-users-apply  # terraform: k8s ServiceAccounts + RBAC
 make k3s-nodes-apply  # terraform: node storage labels
-make k3s-bootstrap    # flux + sealed-secrets + garage layout
+make k3s-bootstrap    # flux + sealed-secrets
 make k3s-kubeconfig   # write ~/.kube/config for $USER (reads the issued token)
 ```
