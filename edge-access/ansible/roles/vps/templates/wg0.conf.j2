@@ -8,6 +8,8 @@ ListenPort = {{ wireguard.port }}
 PublicKey = {{ _lxc_pubkey }}
 PresharedKey = {{ wireguard.psk_lxc }}
 AllowedIPs = {{ ([wireguard.lxc_ip ~ '/32'] + wireguard.routed_subnets | default([])) | join(', ') }}
+# LXC sits behind double-NAT; keep the mapping warm from the VPS side too.
+PersistentKeepalive = 25
 {% for peer in wireguard.extra_peers | default([]) %}
 
 [Peer]

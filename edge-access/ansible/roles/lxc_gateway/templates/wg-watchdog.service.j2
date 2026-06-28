@@ -1,0 +1,8 @@
+[Unit]
+Description=WireGuard VPS peer reachability watchdog
+After=wg-quick@wg0.service
+Wants=wg-quick@wg0.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/wg-watchdog.sh

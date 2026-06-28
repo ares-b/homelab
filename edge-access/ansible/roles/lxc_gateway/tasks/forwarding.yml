@@ -74,6 +74,27 @@
     comment: "edge-access fwd eth0->wg0 established"
   notify: Save iptables
 
+# Traffic crosses two stacked WireGuard hops (client->VPS, VPS->LXC). Without
+# clamping, full-size TLS segments exceed the nested tunnel MTU and are dropped,
+# surfacing as stalled or reset HTTPS. Clamp SYN both directions so client and
+# k3s backend negotiate an MSS that fits the wg0 path MTU.
+- name: LXC Gateway | Forwarding | Clamp TCP MSS to PMTU on wg0
+  ansible.builtin.shell: |
+    set -o pipefail
+    changed=0
+    for dir in "-i wg0" "-o wg0"; do
+      if ! iptables -t mangle -C FORWARD $dir -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null; then
+        iptables -t mangle -A FORWARD $dir -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+        changed=1
+      fi
+    done
+    [ "$changed" -eq 1 ] && echo changed || true
+  args:
+    executable: /bin/bash
+  register: _mss_clamp
+  changed_when: "'changed' in _mss_clamp.stdout"
+  notify: Save iptables
+
 - name: LXC Gateway | Forwarding | DNAT round-robin to k3s ingress nodes
   ansible.builtin.include_tasks: dnat_rr.yml
   loop:

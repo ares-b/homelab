@@ -21,3 +21,6 @@
 
 - name: LXC Gateway | Configure DNS
   ansible.builtin.include_tasks: dns.yml
+
+- name: LXC Gateway | Configure WireGuard watchdog
+  ansible.builtin.include_tasks: watchdog.yml
