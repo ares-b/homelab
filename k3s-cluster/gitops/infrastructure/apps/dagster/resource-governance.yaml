@@ -1,0 +1,29 @@
+# Namespace guardrails for Dagster run pods
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: dagster-run-limits
+  namespace: dagster
+spec:
+  limits:
+    - type: Container
+      defaultRequest:
+        cpu: 200m
+        memory: 384Mi
+      default:
+        memory: 768Mi
+      max:
+        cpu: "2"
+        memory: 2Gi
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: dagster-run-quota
+  namespace: dagster
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: 8Gi
+    limits.memory: 16Gi
+    count/pods: "30"

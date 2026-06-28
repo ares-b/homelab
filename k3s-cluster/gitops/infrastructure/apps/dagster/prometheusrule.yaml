@@ -1,0 +1,44 @@
+# Alerts for Dagster run-pod sizing failures
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: dagster-run-pods
+  namespace: dagster
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: dagster-run-pods
+      rules:
+        - alert: DagsterRunPodOOMKilled
+          expr: |
+            increase(kube_pod_container_status_last_terminated_reason{namespace="dagster",reason="OOMKilled"}[10m]) > 0
+          for: 0m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Dagster run pod OOMKilled in {{ $labels.namespace }}"
+            description: "Pod {{ $labels.pod }} ({{ $labels.container }}) hit its memory limit. Bump the job's tier in dagster-k8s/config."
+
+        - alert: DagsterRunPodPending
+          expr: |
+            kube_pod_status_phase{namespace="dagster",phase="Pending"} == 1
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Dagster pod stuck Pending in {{ $labels.namespace }}"
+            description: "Pod {{ $labels.pod }} unschedulable for 10m. Likely ResourceQuota exhausted or node capacity."
+
+        - alert: DagsterNamespaceMemoryQuotaNearLimit
+          expr: |
+            kube_resourcequota{namespace="dagster",resource="requests.memory",type="used"}
+              / ignoring(type)
+            kube_resourcequota{namespace="dagster",resource="requests.memory",type="hard"}
+            > 0.9
+          for: 15m
+          labels:
+            severity: info
+          annotations:
+            summary: "Dagster namespace memory quota >90% used"
+            description: "requests.memory in dagster is over 90% of quota. Raise the quota or reduce concurrency."

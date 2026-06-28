@@ -1,0 +1,7 @@
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: dagster-run
+value: -10
+globalDefault: false
+description: "Dagster run pods: preemptible batch, evicted before serving workloads."

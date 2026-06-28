@@ -59,13 +59,13 @@ spec:
           jobNamespace: dagster
           resources:
             requests:
-              cpu: 250m
-              memory: 512Mi
+              cpu: 200m
+              memory: 384Mi
             limits:
-              cpu: "2"
-              memory: 2Gi
+              memory: 768Mi
           runK8sConfig:
             podSpecConfig:
+              priorityClassName: dagster-run
               affinity:
                 nodeAffinity:
                   requiredDuringSchedulingIgnoredDuringExecution:
@@ -86,6 +86,12 @@ spec:
 
     dagsterDaemon:
       enabled: true
+      runMonitoring:
+        enabled: true
+        maxResumeRunAttempts: 0
+      runRetries:
+        enabled: true
+        maxRetries: 1
       resources:
         requests:
           cpu: 100m
