@@ -1,5 +1,6 @@
 interface=wg0
-bind-interfaces
+# bind-dynamic tolerates wg0 being absent at boot; bind-interfaces fails hard.
+bind-dynamic
 no-hosts
 no-resolv
 log-queries=extra

@@ -74,10 +74,8 @@
     comment: "edge-access fwd eth0->wg0 established"
   notify: Save iptables
 
-# Traffic crosses two stacked WireGuard hops (client->VPS, VPS->LXC). Without
-# clamping, full-size TLS segments exceed the nested tunnel MTU and are dropped,
-# surfacing as stalled or reset HTTPS. Clamp SYN both directions so client and
-# k3s backend negotiate an MSS that fits the wg0 path MTU.
+# Forwarded traffic crosses two stacked WireGuard hops; unclamped full-size TLS
+# segments exceed the nested tunnel MTU and get dropped, stalling HTTPS.
 - name: LXC Gateway | Forwarding | Clamp TCP MSS to PMTU on wg0
   ansible.builtin.shell: |
     set -o pipefail
